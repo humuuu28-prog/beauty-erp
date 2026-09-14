@@ -1,0 +1,2613 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美業後台營運報表系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6F2;
+    --surface:#FFFFFF;
+    --surface-2:#F5EBE7;
+    --ink:#2B1F27;
+    --ink-soft:#8A757C;
+    --primary:#7A2E43;
+    --primary-light:#9C4A61;
+    --primary-tint:#F3E4E8;
+    --accent:#C98A9C;
+    --positive:#4F7A5B;
+    --positive-tint:#E7F0E9;
+    --negative:#B5484F;
+    --negative-tint:#FBEAEA;
+    --border:#E8DDD8;
+    --radius:12px;
+    --shadow:0 2px 10px rgba(43,31,39,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans TC', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{font-family:'Noto Serif TC', serif;}
+
+  /* ---------- Header ---------- */
+  .app-header{
+    padding:22px 18px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+  }
+  .app-logo{
+    width:44px;height:44px;border-radius:50%;
+    background:var(--primary);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;flex-shrink:0;
+    color:#fff;
+  }
+  .app-title{font-size:19px;font-weight:700;color:var(--primary);line-height:1.3;}
+  .app-subtitle{font-size:12px;color:var(--ink-soft);margin-top:2px;letter-spacing:0.5px;}
+  .header-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+  .storage-badge{
+    font-size:11px;color:var(--ink-soft);background:var(--surface-2);
+    padding:4px 9px;border-radius:12px;white-space:nowrap;
+    border:none;cursor:pointer;font-family:inherit;
+  }
+  .storage-badge:hover, .storage-badge:active{background:var(--primary-tint);color:var(--primary);}
+  @media (max-width:640px){
+    .app-header{flex-wrap:wrap;}
+    .header-actions{width:100%;justify-content:flex-start;margin-top:8px;}
+  }
+
+  /* ---------- Tabs ---------- */
+  .tab-bar{
+    display:flex;
+    gap:4px;
+    padding:10px 12px;
+    background:var(--surface);
+    border-bottom:1px solid var(--border);
+    overflow-x:auto;
+    position:sticky;top:0;z-index:20;
+  }
+  .tab-btn{
+    border:none;background:transparent;
+    padding:9px 16px;
+    border-radius:20px;
+    font-family:'Noto Sans TC',sans-serif;
+    font-size:14px;font-weight:500;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  .tab-btn.active{background:var(--primary);color:#fff;}
+  .tab-btn:not(.active):hover{background:var(--surface-2);}
+
+  .tab-panel{display:none;padding:16px;max-width:1100px;margin:0 auto;}
+  .tab-panel.active{display:block;}
+
+  /* ---------- Section headers ---------- */
+  .section-head{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    margin-bottom:12px;flex-wrap:wrap;gap:8px;
+  }
+  .section-head h2{font-size:17px;margin:0;color:var(--primary);}
+  .section-hint{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+
+  .btn{
+    border:none;border-radius:8px;
+    padding:8px 14px;font-size:13px;font-weight:500;
+    cursor:pointer;font-family:inherit;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-light);}
+  .btn-outline{background:var(--surface);color:var(--primary);border:1px solid var(--primary);}
+  .btn-outline:hover{background:var(--primary-tint);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);}
+  .btn-ghost:hover{color:var(--negative);}
+  .btn-sm{padding:5px 10px;font-size:12px;}
+
+  /* ---------- Overview toolbar ---------- */
+  .period-nav{
+    display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;
+  }
+  .period-btn{
+    border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);
+    padding:8px 16px;border-radius:20px;font-size:13.5px;font-weight:500;cursor:pointer;font-family:inherit;
+  }
+  .period-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .period-btn:not(.active):hover{background:var(--surface-2);}
+  .dash-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  }
+  @media (min-width:640px){ .dash-grid{grid-template-columns:repeat(3,1fr);} }
+  .dash-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:14px 14px 12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px;
+  }
+  .dash-card-label{font-size:12px;color:var(--ink-soft);font-weight:500;}
+  .dash-card-value{font-size:21px;font-weight:700;color:var(--primary);font-variant-numeric:tabular-nums;line-height:1.25;}
+  .dash-card-value.neg{color:var(--negative);}
+  .dash-card-value.small{font-size:17px;}
+  .dash-card.highlight{background:var(--primary-tint);}
+
+  .month-nav{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:8px 12px;margin-bottom:10px;box-shadow:var(--shadow);
+  }
+  .month-nav-arrow{
+    background:var(--surface-2);border:1px solid var(--border);color:var(--primary);
+    width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;
+  }
+  .month-nav-label{font-weight:700;color:var(--primary);font-size:14.5px;flex:1 1 auto;min-width:90px;text-align:center;}
+  .month-nav-today{flex-shrink:0;white-space:nowrap;}
+  .align-field{display:flex;gap:3px;border-right:1px solid var(--border);padding-right:8px;margin-right:2px;}
+  .align-btn{
+    width:28px;height:28px;border:1px solid var(--border);background:var(--surface);
+    border-radius:6px;cursor:pointer;font-size:12px;color:var(--ink-soft);letter-spacing:-1px;
+  }
+  .align-btn:hover, .align-btn.active{background:var(--primary-tint);color:var(--primary);border-color:var(--primary-light);}
+  .toolbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;
+    box-shadow:var(--shadow);
+  }
+  .toolbar .sel-label{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+  .color-field{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-soft);}
+  .color-field input[type=color]{
+    width:26px;height:26px;border:1px solid var(--border);border-radius:6px;
+    padding:0;background:none;cursor:pointer;
+  }
+  .toolbar-spacer{flex:1;}
+
+  /* ---------- Spreadsheet ---------- */
+  .sheet-wrap{
+    overflow:auto;
+    max-height:70vh;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    touch-action:pan-x pan-y;
+  }
+  .sheet-zoom-inner{
+    display:inline-block;
+    min-width:100%;
+  }
+  .zoom-field{
+    display:flex;align-items:center;gap:6px;
+    border-left:1px solid var(--border);padding-left:8px;margin-left:2px;
+  }
+  .zoom-pct{font-size:12px;color:var(--ink-soft);min-width:38px;text-align:center;font-variant-numeric:tabular-nums;}
+  .font-size-select{
+    height:28px;border:1px solid var(--border);border-radius:6px;background:var(--surface);
+    color:var(--ink-soft);font-size:12px;padding:0 4px;
+  }
+  table.sheet{border-collapse:collapse;width:100%;min-width:640px;font-size:13.5px;table-layout:fixed;}
+  table.sheet th, table.sheet td{
+    border:1px solid var(--border);
+    padding:0;position:relative;
+  }
+  table.sheet thead th{
+    background:var(--primary-tint);
+    color:var(--primary);
+    font-weight:700;
+    text-align:left;
+    user-select:none;
+  }
+  .th-inner{
+    position:relative;
+    padding:10px 30px 10px 10px;
+    min-height:36px;
+    cursor:pointer;
+  }
+  .th-inner[contenteditable]{outline:none;}
+  .th-label{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;word-break:keep-all;}
+  .th-label:focus{white-space:normal;overflow:visible;word-break:break-word;}
+  .col-resize-handle{
+    position:absolute;top:0;right:-4px;width:10px;height:100%;
+    cursor:col-resize;z-index:6;touch-action:none;
+  }
+  .col-resize-handle::after{
+    content:'';position:absolute;top:6px;bottom:6px;right:3px;width:4px;
+    border-radius:2px;background:var(--accent);opacity:.35;
+  }
+  .col-resize-handle:hover::after, .col-resize-handle.active::after{opacity:1;}
+  .row-resize-handle{
+    position:absolute;left:0;bottom:-4px;width:100%;height:10px;
+    cursor:row-resize;z-index:6;touch-action:none;
+  }
+  .row-resize-handle::after{
+    content:'';position:absolute;left:6px;right:6px;bottom:3px;height:4px;
+    border-radius:2px;background:var(--accent);opacity:.35;
+  }
+  .row-resize-handle:hover::after, .row-resize-handle.active::after{opacity:1;}
+  .th-del{
+    position:absolute;top:3px;right:3px;
+    width:22px;height:22px;
+    border:none;background:var(--surface);color:var(--primary);opacity:.55;
+    cursor:pointer;font-size:12px;line-height:1;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 2px rgba(43,31,39,0.15);
+  }
+  .th-del:hover, .th-del:active{opacity:1;background:var(--negative-tint);color:var(--negative);}
+  .th-add-cell{
+    background:var(--surface-2);color:var(--primary);
+    text-align:center;cursor:pointer;font-weight:700;min-width:76px;
+  }
+  .th-add-cell:hover, .th-add-cell:active{background:var(--primary-tint);}
+  .th-add-inner{padding:9px 8px;}
+  .th-idx{width:44px;min-width:30px;background:var(--primary-tint);position:relative;}
+
+  td.cell-idx{
+    background:var(--surface-2);color:var(--ink-soft);
+    width:44px;min-width:30px;
+  }
+  .cell-idx-inner{
+    position:relative;
+    padding:4px 22px 4px 4px;
+    min-height:24px;
+  }
+  .idx-num{
+    font-size:11.5px;cursor:pointer;display:block;text-align:center;
+    padding:3px 0;border-radius:5px;outline:none;
+  }
+  .idx-num:active{background:rgba(122,46,67,0.12);}
+  .idx-del{
+    position:absolute;top:2px;right:2px;
+    width:17px;height:17px;
+    border:none;background:var(--surface);color:var(--negative);opacity:.55;
+    cursor:pointer;font-size:10px;line-height:1;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 2px rgba(43,31,39,0.15);
+  }
+  .idx-del:hover, .idx-del:active{opacity:1;background:var(--negative-tint);}
+
+  .cell-input{
+    min-height:22px;padding:4px 7px;outline:none;
+    white-space:pre-wrap;word-break:break-word;
+    cursor:text;
+  }
+  .cell-input:focus{box-shadow:inset 0 0 0 2px var(--primary-light);}
+  td.selected{box-shadow:inset 0 0 0 2px var(--accent);}
+  th.selected{box-shadow:inset 0 0 0 2px var(--accent);}
+  tr.row-selected td{box-shadow:inset 0 0 0 2px var(--accent);}
+  .num-cell{text-align:right;font-variant-numeric:tabular-nums;}
+  .neg{color:var(--negative);}
+
+  tfoot td{
+    background:var(--surface-2);
+    font-weight:700;
+    padding:10px 9px;
+    font-variant-numeric:tabular-nums;
+  }
+  tfoot td.foot-label{color:var(--primary);}
+  tfoot .num-cell{text-align:right;}
+
+  .row-add-bar{
+    padding:10px;text-align:center;
+    background:var(--surface);
+  }
+
+  /* ---------- Payroll settlement ---------- */
+  .payroll-section{margin-top:16px;}
+  .payroll-title{font-size:15px;font-weight:700;color:var(--primary);margin-bottom:4px;}
+  .payroll-table{
+    margin-top:10px;border:1px solid var(--border);border-radius:var(--radius);
+    overflow:hidden;background:var(--surface);box-shadow:var(--shadow);
+  }
+  .payroll-row{
+    display:flex;border-bottom:1px solid var(--border);
+  }
+  .payroll-row:last-child{border-bottom:none;}
+  .payroll-row.total{background:var(--primary-tint);}
+  .payroll-label{
+    width:110px;flex-shrink:0;padding:10px 12px;font-weight:600;color:var(--ink);
+    background:var(--surface-2);font-size:13.5px;display:flex;align-items:center;
+    border-right:1px solid var(--border);
+  }
+  .payroll-row.total .payroll-label{color:var(--primary);}
+  .payroll-value{
+    flex:1;padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;
+    outline:none;cursor:text;font-size:14px;
+  }
+  .payroll-value.readonly{cursor:pointer;font-weight:700;}
+  .payroll-row.selected{box-shadow:inset 0 0 0 2px var(--accent);}
+  .payroll-value.neg{color:var(--negative);}
+
+  /* ---------- Customers ---------- */
+  .cust-grid{display:flex;flex-direction:column;gap:10px;}
+  .cust-card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .cust-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .cust-name{font-size:15px;font-weight:700;color:var(--primary);}
+  .cust-badge{
+    font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px;margin-left:6px;
+    display:inline-block;vertical-align:middle;
+  }
+  .cust-badge.new{background:var(--positive-tint);color:var(--positive);}
+  .cust-badge.returning{background:var(--primary-tint);color:var(--primary);}
+  .cust-meta{font-size:12px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap;}
+  .cust-stats{
+    display:flex;gap:10px;margin-top:4px;flex-wrap:wrap;
+  }
+  .stat-chip{
+    background:var(--primary-tint);color:var(--primary);
+    border-radius:8px;padding:5px 10px;font-size:12px;font-weight:500;
+  }
+  .cust-form{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+    gap:8px;margin-bottom:14px;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);
+  }
+  .cust-form input, .cust-form textarea{
+    border:1px solid var(--border);border-radius:8px;
+    padding:8px 10px;font-family:inherit;font-size:13px;color:var(--ink);
+    background:var(--bg);
+  }
+  .cust-form .full{grid-column:1/-1;}
+
+  input, textarea, select{outline:none;}
+  input:focus, textarea:focus{border-color:var(--primary-light);}
+
+  .empty-hint{
+    text-align:center;color:var(--ink-soft);font-size:13px;
+    padding:26px 10px;background:var(--surface);border:1px dashed var(--border);
+    border-radius:var(--radius);
+  }
+
+  /* ---------- Calendar ---------- */
+  .cal-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;}
+  .cal-nav button{background:var(--surface);border:1px solid var(--border);
+    width:32px;height:32px;border-radius:50%;cursor:pointer;color:var(--primary);font-size:16px;}
+  .cal-nav .cal-title{font-weight:700;color:var(--primary);font-size:15px;min-width:110px;text-align:center;}
+  .cal-grid{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    gap:4px;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:10px;box-shadow:var(--shadow);
+  }
+  .cal-dow{text-align:center;font-size:11px;color:var(--ink-soft);font-weight:700;padding-bottom:4px;}
+  .cal-day{
+    min-height:56px;border-radius:8px;background:var(--bg);
+    padding:4px 5px;font-size:11px;color:var(--ink-soft);cursor:pointer;
+    border:1px solid transparent;position:relative;
+  }
+  .cal-day.has-entry{background:var(--primary-tint);border-color:var(--accent);}
+  .cal-day.today{border-color:var(--primary);}
+  .cal-day.empty{background:transparent;cursor:default;}
+  .cal-day .d-num{font-weight:700;color:var(--ink);font-size:12px;}
+  .cal-day .d-badge{
+    margin-top:3px;background:var(--primary);color:#fff;border-radius:6px;
+    font-size:10px;padding:1px 5px;display:inline-block;margin-right:2px;
+  }
+  .cal-day .d-badge.appt{background:var(--accent);}
+  .cal-detail{
+    margin-top:12px;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);
+  }
+  .cal-detail h3{margin:0 0 8px;font-size:14px;color:var(--primary);}
+  .cal-detail-row{
+    display:flex;justify-content:space-between;font-size:13px;
+    padding:6px 0;border-bottom:1px solid var(--border);
+  }
+  .cal-detail-row:last-child{border-bottom:none;}
+  .cal-appt-list{display:flex;flex-direction:column;gap:6px;}
+  .cal-appt-row{
+    display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:8px;
+    border-left:4px solid var(--border);background:var(--bg);
+  }
+  .cal-appt-row.new{border-left-color:var(--positive);background:var(--positive-tint);}
+  .cal-appt-row.returning{border-left-color:var(--primary);background:var(--primary-tint);}
+  .cal-appt-time{font-weight:700;color:var(--ink);font-size:13px;min-width:44px;}
+  .cal-appt-info{flex:1;display:flex;flex-direction:column;gap:2px;}
+  .cal-appt-name{font-weight:600;font-size:13.5px;}
+  .cal-appt-note{font-size:12px;color:var(--ink-soft);}
+
+  /* ---------- Brand settings ---------- */
+  .brand-form{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;max-width:460px;
+  }
+  .field-row label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:5px;font-weight:500;}
+  .field-row input[type=text]{
+    width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 11px;
+    font-family:inherit;font-size:14px;background:var(--bg);color:var(--ink);
+  }
+  .emoji-picks{display:flex;gap:8px;flex-wrap:wrap;}
+  .emoji-pick{
+    width:40px;height:40px;border-radius:10px;border:1px solid var(--border);
+    background:var(--bg);font-size:19px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .emoji-pick.active{border-color:var(--primary);background:var(--primary-tint);}
+  .color-picks{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .swatch{
+    width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;
+  }
+  .swatch.active{border-color:var(--ink);}
+  .preview-box{
+    border:1px solid var(--border);border-radius:var(--radius);padding:16px;
+    display:flex;align-items:center;gap:12px;background:var(--bg);
+  }
+
+  .save-toast{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:8px 16px;border-radius:20px;font-size:12.5px;
+    opacity:0;transition:opacity .25s, transform .25s;pointer-events:none;z-index:99;
+  }
+  .save-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- Modal ---------- */
+  .modal-mask{
+    position:fixed;inset:0;background:rgba(43,31,39,0.4);
+    display:none;align-items:center;justify-content:center;z-index:200;padding:16px;
+  }
+  .modal-mask.show{display:flex;}
+  .modal{
+    background:var(--surface);border-radius:var(--radius);padding:20px;width:100%;max-width:340px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.2);
+  }
+  .modal h3{margin:0 0 12px;color:var(--primary);font-size:15px;}
+  .modal label{display:block;font-size:12.5px;color:var(--ink-soft);margin:10px 0 5px;}
+  .modal input[type=text]{
+    width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-family:inherit;font-size:14px;
+  }
+  .modal .radio-row{display:flex;gap:14px;font-size:13px;}
+  .modal .radio-row label{display:flex;align-items:center;gap:5px;margin:0;color:var(--ink);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+  .modal.wide{max-width:420px;}
+  .modal textarea{
+    width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 10px;
+    font-family:ui-monospace,monospace;font-size:12px;min-height:90px;resize:vertical;
+  }
+  .cloud-steps{
+    background:var(--bg);border:1px solid var(--border);border-radius:8px;
+    padding:10px 12px;font-size:12px;color:var(--ink-soft);line-height:1.7;margin-bottom:10px;
+  }
+  .cloud-steps a{color:var(--primary);}
+  .cloud-status-ok{
+    background:var(--positive-tint);color:var(--positive);border-radius:8px;
+    padding:10px 12px;font-size:13px;display:flex;flex-direction:column;gap:6px;
+  }
+  .cloud-code-row{display:flex;align-items:center;gap:8px;}
+  .cloud-code-row code{
+    background:var(--surface);border:1px solid var(--border);border-radius:6px;
+    padding:4px 8px;font-size:13px;flex:1;word-break:break-all;
+  }
+  .field-hint{font-size:11.5px;color:var(--ink-soft);margin-top:4px;}
+
+  @media (max-width:520px){
+    .app-title{font-size:16px;}
+    table.sheet{font-size:12.5px;}
+    .cust-form{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-logo" id="brandEmoji">💇‍♀️</div>
+  <div style="flex:1;min-width:0;">
+    <div class="app-title" id="brandName">美業後台營運報表</div>
+    <div class="app-subtitle">SALON OPERATIONS</div>
+  </div>
+  <div class="header-actions">
+    <span class="storage-badge" id="storageBadge" title="點我設定雲端同步">偵測中…</span>
+    <button type="button" class="btn btn-ghost btn-sm" id="exportBtn" title="下載目前所有資料的備份檔">匯出備份</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="importBtn" title="從備份檔還原資料">匯入備份</button>
+    <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button type="button" class="tab-btn active" data-tab="dashboard">總覽</button>
+  <button type="button" class="tab-btn" data-tab="overview">報表</button>
+  <button type="button" class="tab-btn" data-tab="customers">客戶建檔</button>
+  <button type="button" class="tab-btn" data-tab="calendar">日曆</button>
+  <button type="button" class="tab-btn" data-tab="brand">品牌設定</button>
+</div>
+
+<!-- ===================== 總覽（大數據儀表板） ===================== -->
+<div class="tab-panel active" id="panel-dashboard">
+  <div class="section-head">
+    <div>
+      <h2>營運總覽</h2>
+      <div class="section-hint">快速掌握店裡的營運狀況，數字會依照您在「報表」分頁輸入的資料自動計算。</div>
+    </div>
+  </div>
+
+  <div class="period-nav" id="periodNav">
+    <button type="button" class="period-btn" data-period="today">今日</button>
+    <button type="button" class="period-btn" data-period="week">本週</button>
+    <button type="button" class="period-btn active" data-period="month">本月</button>
+    <button type="button" class="period-btn" data-period="year">今年</button>
+  </div>
+
+  <div class="dash-grid" id="dashGrid"></div>
+  <div class="section-hint" style="margin-top:10px;">＊耗材成本＝該期間「實收」欄輸入負數的列加總（例如扣款用的「化妝水 -1680」）。＊今日／本週的期間毛利僅扣除抽成，不含底薪等固定薪資成本（因為無法合理拆分到單日）；本月／今年則包含完整薪資結算。</div>
+</div>
+
+<!-- ===================== 報表 ===================== -->
+<div class="tab-panel" id="panel-overview">
+  <div class="section-head">
+    <div>
+      <h2>報表</h2>
+      <div class="section-hint">點欄名選整欄、點列號選整列、點格子選單一格，再用下方色塊套用顏色。金額欄輸入負數代表扣款。</div>
+    </div>
+  </div>
+
+  <div class="month-nav">
+    <button type="button" class="month-nav-arrow" id="ovMonthPrev" title="上一個月">‹</button>
+    <div class="month-nav-label" id="ovMonthLabel"></div>
+    <button type="button" class="month-nav-arrow" id="ovMonthNext" title="下一個月">›</button>
+    <button type="button" class="btn btn-ghost btn-sm month-nav-today" id="ovMonthToday">回到本月</button>
+  </div>
+
+  <div class="toolbar">
+    <span class="sel-label" id="selLabel">尚未選取</span>
+    <div class="toolbar-spacer"></div>
+    <div class="align-field">
+      <button type="button" class="align-btn" id="alignLeftBtn" title="靠左">≡⇤</button>
+      <button type="button" class="align-btn" id="alignCenterBtn" title="置中">≡</button>
+      <button type="button" class="align-btn" id="alignRightBtn" title="靠右">⇥≡</button>
+    </div>
+    <div class="align-field">
+      <button type="button" class="align-btn" id="borderOnBtn" title="加框線">⊞</button>
+      <button type="button" class="align-btn" id="borderOffBtn" title="去框線">⊡</button>
+    </div>
+    <div class="align-field">
+      <select id="fontSizeSelect" class="font-size-select" title="字體大小">
+        <option value="">預設</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="16">16</option>
+        <option value="18">18</option>
+        <option value="20">20</option>
+        <option value="24">24</option>
+      </select>
+    </div>
+    <div class="color-field">文字色 <input type="color" id="txtColorInput" value="#2B1F27"></div>
+    <div class="color-field">底色 <input type="color" id="bgColorInput" value="#ffffff"></div>
+    <button type="button" class="btn btn-ghost btn-sm" id="clearColorBtn">清除顏色</button>
+    <div class="zoom-field">
+      <button type="button" class="align-btn" id="zoomOutBtn" title="縮小">－</button>
+      <span class="zoom-pct" id="zoomPct">100%</span>
+      <button type="button" class="align-btn" id="zoomInBtn" title="放大">＋</button>
+    </div>
+  </div>
+
+  <div class="sheet-wrap" id="sheetWrap">
+    <div class="sheet-zoom-inner" id="sheetZoomInner">
+      <table class="sheet" id="sheetTable">
+        <colgroup id="sheetColgroup"></colgroup>
+        <thead id="sheetHead"></thead>
+        <tbody id="sheetBody"></tbody>
+        <tfoot id="sheetFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="row-add-bar">
+    <button type="button" class="btn btn-outline btn-sm" id="addRowBtn">＋ 新增列</button>
+  </div>
+
+  <div class="payroll-section">
+    <div class="payroll-title">💰 薪資結算</div>
+    <div class="section-hint">同一套點選＋上色／字體工具也能套用在這裡。「底薪」記住的金額會自動帶到之後的新月份，不用每個月重打。</div>
+    <div class="payroll-table" id="payrollTable"></div>
+  </div>
+</div>
+
+<!-- ===================== 客戶建檔 ===================== -->
+<div class="tab-panel" id="panel-customers">
+  <div class="section-head">
+    <div>
+      <h2>客戶建檔</h2>
+      <div class="section-hint">消費次數與累計實收會自動從「總覽」姓名比對彙整。</div>
+    </div>
+    <button type="button" class="btn btn-primary" id="addCustBtn">＋ 新增客戶</button>
+  </div>
+  <div id="custFormWrap"></div>
+  <div class="cust-grid" id="custList"></div>
+</div>
+
+<!-- ===================== 日曆 ===================== -->
+<div class="tab-panel" id="panel-calendar">
+  <div class="section-head">
+    <div>
+      <h2>日曆檢視</h2>
+      <div class="section-hint">依「總覽」日期欄位（格式如 8/27）自動標示當月有紀錄的日子。</div>
+    </div>
+  </div>
+  <div class="cal-nav">
+    <button type="button" id="calPrev">‹</button>
+    <div class="cal-title" id="calTitle"></div>
+    <button type="button" id="calNext">›</button>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+  <div class="cal-detail" id="calDetail" style="display:none;"></div>
+</div>
+
+<!-- ===================== 品牌設定 ===================== -->
+<div class="tab-panel" id="panel-brand">
+  <div class="section-head">
+    <div>
+      <h2>品牌設定</h2>
+      <div class="section-hint">設定店名、識別色與圖示，會套用到整個系統。</div>
+    </div>
+  </div>
+  <div class="brand-form">
+    <div class="field-row">
+      <label>店名 / 系統標題</label>
+      <input type="text" id="brandNameInput" placeholder="例如：Belle 美睫美甲工作室">
+    </div>
+    <div class="field-row">
+      <label>圖示</label>
+      <div class="emoji-picks" id="emojiPicks"></div>
+    </div>
+    <div class="field-row">
+      <label>主色調</label>
+      <div class="color-picks" id="colorPicks"></div>
+    </div>
+    <div class="field-row">
+      <label>預覽</label>
+      <div class="preview-box">
+        <div class="app-logo" id="previewLogo" style="width:36px;height:36px;font-size:17px;">💇‍♀️</div>
+        <div>
+          <div style="font-weight:700;color:var(--primary);" id="previewName">美業後台營運報表</div>
+          <div style="font-size:11px;color:var(--ink-soft);">按鈕與強調色會使用此色調</div>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-primary" id="saveBrandBtn">儲存設定</button>
+  </div>
+</div>
+
+<div class="save-toast" id="saveToast">已自動儲存</div>
+
+<div class="modal-mask" id="colModalMask">
+  <div class="modal">
+    <h3>新增欄位</h3>
+    <label>欄位名稱</label>
+    <input type="text" id="newColName" placeholder="例如：付款方式">
+    <label>欄位類型</label>
+    <div class="radio-row">
+      <label><input type="radio" name="colType" value="text" checked> 一般文字</label>
+      <label><input type="radio" name="colType" value="number"> 金額（自動加總）</label>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="colModalCancel">取消</button>
+      <button type="button" class="btn btn-primary btn-sm" id="colModalOk">新增</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- global error visibility -----------------
+     Some sandboxed preview environments silently swallow errors (and even
+     window.alert calls), which made earlier bugs look like "nothing
+     happens" with zero clues. This banner makes any uncaught error visible
+     directly on the page itself, no dev tools or alert() needed.
+  --------------------------------------------------------------- */
+  function showDebugBanner(msg){
+    let el = document.getElementById('__debugBanner');
+    if(!el){
+      el = document.createElement('div');
+      el.id = '__debugBanner';
+      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#B5484F;color:#fff;'
+        + 'font-family:sans-serif;font-size:12px;padding:10px 36px 10px 12px;line-height:1.5;'
+        + 'box-shadow:0 2px 8px rgba(0,0,0,.3);white-space:pre-wrap;word-break:break-word;';
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = '✕';
+      closeBtn.style.cssText = 'position:absolute;top:6px;right:8px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;';
+      closeBtn.onclick = ()=>{ el.remove(); };
+      el.appendChild(closeBtn);
+      const textEl = document.createElement('div');
+      textEl.id = '__debugBannerText';
+      el.appendChild(textEl);
+      document.body.appendChild(el);
+    }
+    const textEl = document.getElementById('__debugBannerText');
+    const line = document.createElement('div');
+    line.textContent = '⚠️ ' + msg;
+    textEl.appendChild(line);
+  }
+  window.addEventListener('error', function(e){
+    showDebugBanner('程式發生錯誤：' + (e.message || (e.error && e.error.message) || '未知錯誤'));
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    const reason = e.reason;
+    showDebugBanner('未處理的錯誤：' + (reason && reason.message ? reason.message : String(reason)));
+  });
+
+  /* ---------------- utils ---------------- */
+  function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+  function debounce(fn, ms){ let t; return function(...a){ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+  function fmtNum(n){
+    if(n===null || n===undefined || isNaN(n)) return '';
+    return n.toLocaleString('zh-TW');
+  }
+  function parseNum(str){
+    if(str===undefined || str===null) return NaN;
+    const cleaned = String(str).replace(/[,\s$，元]/g,'').trim();
+    if(cleaned==='' || cleaned==='-') return NaN;
+    const n = Number(cleaned);
+    return isNaN(n) ? NaN : n;
+  }
+  function escapeHtml(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function showToast(msg){
+    const t = document.getElementById('saveToast');
+    if(!t) return;
+    t.textContent = msg || '已自動儲存';
+    t.classList.add('show');
+    clearTimeout(showToast._h);
+    showToast._h = setTimeout(()=>t.classList.remove('show'), 1200);
+  }
+
+  /* ---------------- storage backend detection ----------------
+     Priority 1: window.storage — only works when this page is running
+     INSIDE Claude's own chat interface (as a live artifact), not after
+     downloading the file.
+     Priority 2: localStorage — works in a normal browser (Safari/Chrome)
+     once the file is opened as a real page, and persists between visits.
+     Priority 3: in-memory only — some sandboxed previews (e.g. iOS Notes'
+     built-in preview) block all storage entirely; in that case we keep
+     data in memory for the session and rely on manual export/import.
+  ------------------------------------------------------------------ */
+  /* ---------------- storage backend detection ----------------
+     Priority 1: window.storage — only works when this page is running
+     INSIDE Claude's own chat interface (as a live artifact), not after
+     downloading the file.
+     Priority 2: localStorage — works in a normal browser (Safari/Chrome)
+     once the file is opened as a real page, and persists between visits.
+     Priority 3: in-memory only — some sandboxed previews (e.g. iOS Notes'
+     built-in preview) block all storage entirely; in that case we keep
+     data in memory for the session and rely on manual export/import.
+
+     Saving is written to EVERY backend that's available at once (not just
+     the "primary" one) — this way, if window.storage has a transient
+     hiccup, the localStorage copy still lands safely, and vice versa.
+     A failure toast is only shown if ALL available backends failed, and
+     even then at most once every few seconds so rapid typing doesn't
+     spam the screen with error messages.
+  ------------------------------------------------------------------ */
+  const LOCAL_PREFIX = 'beautyErp:';
+  let storageBackend = 'none'; // badge display only: 'claude' | 'local' | 'none'
+  let claudeStorageOk = false;
+  let localStorageOk = false;
+  let lastFailToastAt = 0;
+  const TIMED_OUT = Symbol('timed_out');
+
+  // Some sandboxed preview environments (e.g. iOS Files-app QuickLook) expose
+  // an object at window.storage that never actually resolves or rejects —
+  // without a timeout, awaiting it hangs the whole detection step forever
+  // (which is why the badge could get permanently stuck on "偵測中…").
+  function withTimeout(promise, ms){
+    return Promise.race([
+      Promise.resolve(promise),
+      new Promise(resolve=>setTimeout(()=>resolve(TIMED_OUT), ms)),
+    ]);
+  }
+
+  async function detectStorageBackend(){
+    if(typeof window.storage !== 'undefined' && window.storage && typeof window.storage.set === 'function'){
+      try{
+        const setResult = await withTimeout(window.storage.set('__probe__', '1', false), 1500);
+        if(setResult === TIMED_OUT) throw new Error('window.storage.set 逾時無回應');
+        const r = await withTimeout(window.storage.get('__probe__', false), 1500);
+        if(r === TIMED_OUT) throw new Error('window.storage.get 逾時無回應');
+        if(r && r.value === '1'){ claudeStorageOk = true; }
+      }catch(e){ claudeStorageOk = false; }
+    }
+    try{
+      localStorage.setItem(LOCAL_PREFIX+'__probe__', '1');
+      localStorageOk = localStorage.getItem(LOCAL_PREFIX+'__probe__') === '1';
+      localStorage.removeItem(LOCAL_PREFIX+'__probe__');
+    }catch(e){ localStorageOk = false; }
+
+    storageBackend = claudeStorageOk ? 'claude' : (localStorageOk ? 'local' : 'none');
+  }
+
+  async function loadKey(key, fallback){
+    if(claudeStorageOk){
+      try{
+        const res = await withTimeout(window.storage.get(key, false), 1500);
+        if(res === TIMED_OUT) throw new Error('逾時');
+        if(res && res.value) return JSON.parse(res.value);
+      }catch(e){ /* try local next */ }
+    }
+    if(localStorageOk){
+      try{
+        const raw = localStorage.getItem(LOCAL_PREFIX+key);
+        if(raw) return JSON.parse(raw);
+      }catch(e){ /* fall through */ }
+    }
+    return fallback;
+  }
+
+  async function saveKey(key, value){
+    const json = JSON.stringify(value);
+    let anySucceeded = false;
+
+    if(claudeStorageOk){
+      try{
+        const result = await withTimeout(window.storage.set(key, json, false), 1500);
+        if(result === TIMED_OUT) throw new Error('逾時');
+        anySucceeded = true;
+      }
+      catch(e){ console.error('window.storage 儲存失敗，改用瀏覽器本機儲存', e); }
+    }
+    if(localStorageOk){
+      try{ localStorage.setItem(LOCAL_PREFIX+key, json); anySucceeded = true; }
+      catch(e){ console.error('localStorage 儲存失敗', e); }
+    }
+
+    if(anySucceeded){
+      showToast('已自動儲存');
+    } else {
+      const now = Date.now();
+      if(now - lastFailToastAt > 8000){
+        lastFailToastAt = now;
+        showToast('⚠️ 自動儲存失敗，請點右上角「匯出備份」保存');
+      }
+    }
+  }
+
+  function updateStorageBadge(){
+    const el = document.getElementById('storageBadge');
+    if(!el) return;
+    if(cloudConnected){ el.textContent='☁️ 雲端同步中'; el.title='資料會即時同步到所有連同一個同步代碼的裝置（點我查看代碼）'; return; }
+    if(cloudConfigured && !cloudConnected){ el.textContent='☁️ 雲端連線中…'; el.title='正在連接雲端資料庫'; return; }
+    if(storageBackend==='claude'){ el.textContent='💾 自動儲存中'; el.title='資料會儲存在這個對話裡（點我可設定跨裝置雲端同步）'; }
+    else if(storageBackend==='local'){ el.textContent='💾 自動儲存中'; el.title='資料會保存在這個瀏覽器裡（點我可設定跨裝置雲端同步）'; }
+    else { el.textContent='⚠️ 無法自動儲存'; el.title='這個瀏覽器/預覽環境擋掉了儲存功能，請改用「匯出備份」手動保存，或改用 Safari 開啟此檔案'; }
+  }
+
+  /* ================= CLOUD SYNC (optional, via person's own free Firebase project) ================= */
+  const CLOUD_CFG_KEY = 'beautyErp:cloudConfig';
+  let cloudConfigured = false;   // a config has been saved locally
+  let cloudConnected = false;    // actively receiving live updates right now
+  let cloudSyncCode = '';
+  let cloudConfigObj = null;
+  let cloudPushTimer = null;
+  let applyingRemote = false; // guard so applying a remote update doesn't immediately re-push
+
+  function randomSyncCode(){
+    // Uses the browser's cryptographically secure random generator when
+    // available (much harder to guess than Math.random()). This code is
+    // never baked into the public source — it's only ever typed in and
+    // stored in the person's own browser — so making it long and random
+    // is the real "key" for this app's security model.
+    const bytes = new Uint8Array(15);
+    if(window.crypto && window.crypto.getRandomValues){ window.crypto.getRandomValues(bytes); }
+    else { for(let i=0;i<bytes.length;i++) bytes[i] = Math.floor(Math.random()*256); }
+    let out = '';
+    for(let i=0;i<bytes.length;i++) out += bytes[i].toString(36).padStart(2,'0');
+    return out.slice(0,20);
+  }
+
+  // Firebase console gives a JS object literal (unquoted keys), not strict JSON —
+  // pull out the fields we need with targeted regexes instead of eval()'ing user input.
+  function parseFirebaseConfigText(text){
+    const fields = ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'];
+    const cfg = {};
+    fields.forEach(f=>{
+      const re = new RegExp(f + '\\s*:\\s*["\']([^"\']+)["\']');
+      const m = re.exec(text);
+      if(m) cfg[f] = m[1];
+    });
+    if(!cfg.apiKey || !cfg.projectId) return null;
+    return cfg;
+  }
+
+  // The actual Firebase loading code lives in a separate <script type="module">
+  // tag near the end of the document (window.__loadFirebaseModules), because
+  // dynamic import() syntax isn't reliably supported inside a plain classic
+  // <script> in every WebKit sandbox — putting it in a real module script
+  // avoids that entirely. That module script does NOT run anything on its
+  // own; it only defines the loader function, so there is zero network
+  // activity unless the person clicks "連線" below.
+  let cloudApiPromise = null;
+  function loadCloudSyncApi(){
+    if(cloudApiPromise) return cloudApiPromise;
+    if(typeof window.__loadFirebaseModules !== 'function'){
+      return Promise.reject(new Error('雲端同步模組尚未就緒'));
+    }
+    cloudApiPromise = window.__loadFirebaseModules();
+    return cloudApiPromise;
+  }
+  let cloudApi = null;
+
+  function applyCloudData(data){
+    applyingRemote = true;
+    if(data.overview) state.overview = migrateOverviewIfNeeded(data.overview);
+    if(data.customers) state.customers = data.customers;
+    if(data.brand) state.brand = data.brand;
+    if(data.appointments) state.appointments = data.appointments;
+    state.selection = null;
+    applyBrand(false);
+    renderEverything();
+    // mirror into local cache too, so this device still has an offline copy
+    if(localStorageOk){
+      try{
+        localStorage.setItem(LOCAL_PREFIX+'overview:data', JSON.stringify(state.overview));
+        localStorage.setItem(LOCAL_PREFIX+'customers:list', JSON.stringify(state.customers));
+        localStorage.setItem(LOCAL_PREFIX+'brand:settings', JSON.stringify(state.brand));
+      }catch(e){/* ignore */}
+    }
+    applyingRemote = false;
+    updateStorageBadge();
+    showToast('☁️ 已同步其他裝置的更新');
+  }
+
+  function setCloudStatus(msg, isError){
+    const el = document.getElementById('cloudStatusMsg');
+    if(!el) return;
+    el.textContent = msg || '';
+    el.style.color = isError ? 'var(--negative)' : 'var(--ink-soft)';
+  }
+
+  async function connectCloud(config, syncCode, {silent}={}){
+    let api;
+    if(!silent) setCloudStatus('正在下載雲端同步元件…（第一次連線約需幾秒）', false);
+    try{
+      const loaded = await withTimeout(loadCloudSyncApi(), 8000);
+      if(loaded === TIMED_OUT){
+        const msg = '雲端同步元件下載逾時，請確認網路連線後再試一次。';
+        if(!silent) setCloudStatus('⚠️ '+msg, true); else console.error(msg);
+        return false;
+      }
+      api = loaded;
+      cloudApi = api;
+    }catch(e){
+      const msg = '雲端同步元件載入失敗：' + (e && e.message ? e.message : String(e));
+      if(!silent) setCloudStatus('⚠️ '+msg, true); else console.error(msg, e);
+      return false;
+    }
+    if(!silent) setCloudStatus('元件已載入，正在連線資料庫…', false);
+    let specificErrorShown = false;
+    const success = await api.connect(config, syncCode, applyCloudData, (err)=>{
+      const msg = '無法連線到雲端資料庫：' + (err && err.message ? err.message : String(err));
+      console.error('雲端同步發生錯誤', err);
+      cloudConnected = false;
+      updateStorageBadge();
+      specificErrorShown = true;
+      if(!silent) setCloudStatus('⚠️ '+msg, true);
+    });
+    if(success){
+      cloudConnected = true;
+      cloudConfigured = true;
+      cloudSyncCode = syncCode;
+      cloudConfigObj = config;
+      try{ localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify({firebaseConfig:config, syncCode})); }catch(e){}
+      updateStorageBadge();
+      if(!silent) setCloudStatus('✅ 連線成功！', false);
+      schedulePushToCloud(); // push whatever we currently have so the cloud doc exists
+    } else if(!silent && !specificErrorShown){
+      setCloudStatus('⚠️ 連線失敗，請確認貼上的設定內容是否正確。', true);
+    }
+    return success;
+  }
+
+  function disconnectCloud(){
+    if(cloudApi) cloudApi.disconnect();
+    cloudConnected = false;
+    cloudConfigured = false;
+    cloudSyncCode = '';
+    cloudConfigObj = null;
+    try{ localStorage.removeItem(CLOUD_CFG_KEY); }catch(e){}
+    updateStorageBadge();
+  }
+
+  function schedulePushToCloud(){
+    if(!cloudConnected || applyingRemote || !cloudApi) return;
+    clearTimeout(cloudPushTimer);
+    cloudPushTimer = setTimeout(async ()=>{
+      const payload = { overview: state.overview, customers: state.customers, brand: state.brand, appointments: state.appointments, updatedAt: Date.now() };
+      const ok = await cloudApi.write(cloudSyncCode, payload);
+      if(!ok) showToast('⚠️ 雲端同步失敗，稍後會自動重試');
+    }, 500);
+  }
+
+  async function tryAutoConnectCloud(){
+    let raw = null;
+    try{ raw = localStorage.getItem(CLOUD_CFG_KEY); }catch(e){}
+    if(!raw) return;
+    let saved;
+    try{ saved = JSON.parse(raw); }catch(e){ return; }
+    if(!saved || !saved.firebaseConfig || !saved.syncCode) return;
+    cloudConfigured = true;
+    updateStorageBadge();
+    await connectCloud(saved.firebaseConfig, saved.syncCode, {silent:true});
+  }
+
+  function renderCloudModal(){
+    const body = document.getElementById('cloudModalBody');
+    if(cloudConnected){
+      body.innerHTML = `
+        <div class="cloud-status-ok">
+          <div>✅ 已連線，這台裝置的變更會即時同步。</div>
+          <div class="cloud-code-row">
+            <code id="cloudCodeDisplay">${escapeHtml(cloudSyncCode)}</code>
+            <button type="button" class="btn btn-outline btn-sm" id="cloudCopyCodeBtn">複製代碼</button>
+          </div>
+          <div style="font-size:11.5px;">在另一台裝置的雲端設定裡貼上同一組 Firebase 設定＋同一個同步代碼，就會看到一樣的資料。</div>
+        </div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button type="button" class="btn btn-ghost btn-sm" id="cloudDisconnectBtn">中斷雲端同步</button>
+        </div>`;
+      document.getElementById('cloudCopyCodeBtn').addEventListener('click', ()=>{
+        navigator.clipboard && navigator.clipboard.writeText(cloudSyncCode).then(()=>showToast('已複製同步代碼'));
+      });
+      document.getElementById('cloudDisconnectBtn').addEventListener('click', ()=>{
+        if(confirm('確定要中斷雲端同步嗎？資料會保留在這台裝置的本機儲存中。')){
+          disconnectCloud();
+          renderCloudModal();
+        }
+      });
+    } else {
+      const suggestedCode = cloudSyncCode || randomSyncCode();
+      body.innerHTML = `
+        <div class="cloud-steps">
+          <b>申請免費 Firebase（約 3 分鐘，一次就好）：</b><br>
+          1. 開啟 <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a>，用 Google 帳號登入 →「建立專案」，隨便命名，可跳過 Analytics<br>
+          2. 左側選單「Firestore Database」→「建立資料庫」→ 選「測試模式」→ 選一個地區 → 完成<br>
+          3. 左側「專案設定」（齒輪圖示）→ 拉到「您的應用程式」→ 點網頁圖示 &lt;/&gt; → 隨便命名 → 註冊<br>
+          4. 把畫面上出現的整段 <code>firebaseConfig = {...}</code> 複製，貼到下面
+        </div>
+        <label>貼上 Firebase 設定</label>
+        <textarea id="cloudConfigInput" placeholder='const firebaseConfig = { apiKey: "...", projectId: "...", ... };'></textarea>
+        <label>同步代碼（其他裝置要輸入一樣的代碼才會同步同一份資料）</label>
+        <input type="text" id="cloudSyncCodeInput" value="${escapeHtml(suggestedCode)}" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <div class="field-hint">建議自訂一個不容易被猜到的代碼，例如店名+數字。</div>
+        <div id="cloudStatusMsg" class="field-hint" style="min-height:16px;font-weight:600;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="cloudConnectBtn">連線</button>
+        </div>`;
+      document.getElementById('cloudConnectBtn').addEventListener('click', async ()=>{
+        const txt = document.getElementById('cloudConfigInput').value.trim();
+        const code = document.getElementById('cloudSyncCodeInput').value.trim().toLowerCase();
+        if(!txt || !code){ setCloudStatus('⚠️ 請貼上 Firebase 設定並填寫同步代碼', true); return; }
+        const cfg = parseFirebaseConfigText(txt);
+        if(!cfg){ setCloudStatus('⚠️ 看起來不是有效的 Firebase 設定，請確認整段都有貼上（需包含 apiKey 與 projectId）', true); return; }
+        const btn = document.getElementById('cloudConnectBtn');
+        btn.textContent = '連線中…'; btn.disabled = true;
+        setCloudStatus('開始連線…', false);
+        try{
+          const ok = await connectCloud(cfg, code);
+          if(ok) setTimeout(()=>renderCloudModal(), 600);
+        }catch(e){
+          console.error('連線發生未預期錯誤', e);
+          setCloudStatus('⚠️ 發生未預期的錯誤：' + (e && e.message ? e.message : String(e)), true);
+        }finally{
+          if(document.body.contains(btn)){ btn.textContent = '連線'; btn.disabled = false; }
+        }
+      });
+    }
+  }
+
+  function bindCloudModal(){
+    document.getElementById('storageBadge').addEventListener('click', ()=>{
+      renderCloudModal();
+      document.getElementById('cloudModalMask').classList.add('show');
+    });
+    document.getElementById('cloudModalClose').addEventListener('click', ()=>{
+      document.getElementById('cloudModalMask').classList.remove('show');
+    });
+    document.getElementById('cloudModalMask').addEventListener('click', (e)=>{
+      if(e.target.id==='cloudModalMask') document.getElementById('cloudModalMask').classList.remove('show');
+    });
+  }
+
+  /* ---------------- manual backup (works everywhere, even storageBackend==='none') ---------------- */
+  function exportBackup(){
+    const payload = { overview: state.overview, customers: state.customers, brand: state.brand, appointments: state.appointments, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `美業後台備份_${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function importBackupFile(file){
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const data = JSON.parse(reader.result);
+        if(!confirm('匯入備份會覆蓋目前畫面上的資料，確定要繼續嗎？')) return;
+        if(data.overview) state.overview = migrateOverviewIfNeeded(data.overview);
+        if(data.customers) state.customers = data.customers;
+        if(data.brand) state.brand = data.brand;
+        if(data.appointments) state.appointments = data.appointments;
+        state.selection = null;
+        applyBrand(false);
+        renderEverything();
+        saveOverview(); saveCustomers(); saveBrand();
+        showToast('已匯入備份');
+      }catch(e){
+        alert('這個檔案看起來不是有效的備份檔，請確認格式。');
+      }
+    };
+    reader.readAsText(file);
+  }
+  const saveOverviewNow = ()=>{ saveKey('overview:data', state.overview); schedulePushToCloud(); };
+  const saveCustomersNow = ()=>{ saveKey('customers:list', state.customers); schedulePushToCloud(); };
+  const saveBrandNow = ()=>{ saveKey('brand:settings', state.brand); schedulePushToCloud(); };
+  const saveAppointmentsNow = ()=>{ saveKey('appointments:data', state.appointments); schedulePushToCloud(); };
+  const saveOverview = debounce(saveOverviewNow, 500);
+  const saveCustomers = debounce(saveCustomersNow, 500);
+  const saveBrand = debounce(saveBrandNow, 400);
+  const saveAppointments = debounce(saveAppointmentsNow, 400);
+
+  /* ---------------- state ---------------- */
+  const DEFAULT_COLUMNS = [
+    {id:'date', label:'日期', type:'text', summable:false, width:76},
+    {id:'name', label:'姓名', type:'text', summable:false, width:90},
+    {id:'item', label:'項目', type:'text', summable:false, width:150},
+    {id:'revenue', label:'營收', type:'number', summable:true, width:92},
+    {id:'received', label:'實收', type:'number', summable:true, width:92},
+    {id:'commission', label:'抽成', type:'number', summable:true, width:92},
+    {id:'note', label:'備註', type:'text', summable:false, width:150},
+  ];
+
+  function sampleRow(date,name,item,rev,rec,com,note){
+    return { id: uid(), cells: {
+      date:{v:date,color:'',bg:'',align:''}, name:{v:name,color:'',bg:'',align:''}, item:{v:item,color:'',bg:'',align:''},
+      revenue:{v:String(rev),color:'',bg:'',align:''}, received:{v:String(rec),color:'',bg:'',align:''},
+      commission:{v:String(com),color:'',bg:'',align:''}, note:{v:note,color:'',bg:'',align:''}
+    }};
+  }
+
+  // ---- month-bucketed rows: each calendar month keeps its own set of rows,
+  // so switching months never loses older or future data. Columns (the
+  // table structure/headers) stay shared across every month. ----
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function monthKey(d){ return d.getFullYear() + '-' + pad2(d.getMonth()+1); }
+  function monthKeyLabel(key){
+    const [y,m] = key.split('-').map(Number);
+    return y + ' 年 ' + m + ' 月';
+  }
+  function shiftMonthKey(key, delta){
+    const [y,m] = key.split('-').map(Number);
+    const d = new Date(y, m-1+delta, 1);
+    return monthKey(d);
+  }
+  const DEFAULT_ROWS_PER_MONTH = 33;
+  function blankRow(){
+    const cells = {};
+    state.overview.columns.forEach(c=> cells[c.id] = {v:'',color:'',bg:'',align:''});
+    return { id: uid(), cells, label:'' };
+  }
+  function getMonthRows(key){
+    if(!state.overview.monthlyRows[key]) state.overview.monthlyRows[key] = [];
+    const rows = state.overview.monthlyRows[key];
+    // every month always keeps *at least* this many rows ready to type into —
+    // this tops up older/smaller months too, not just brand-new ones.
+    while(rows.length < DEFAULT_ROWS_PER_MONTH) rows.push(blankRow());
+    return rows;
+  }
+  function currentMonthRows(){ return getMonthRows(state.overviewMonth); }
+  function allRowsFlat(){
+    return Object.values(state.overview.monthlyRows).flat();
+  }
+  // read-only versions — never auto-create/pad a month bucket, so scanning
+  // many months for dashboard stats can't accidentally spawn empty future months
+  function peekMonthRows(key){
+    return (state.overview.monthlyRows && state.overview.monthlyRows[key]) || [];
+  }
+  function peekMonthPayroll(key){
+    return (state.overview.monthlyPayroll && state.overview.monthlyPayroll[key]) || null;
+  }
+  function allRowsWithMonth(){
+    const out = [];
+    Object.keys(state.overview.monthlyRows||{}).forEach(mk=>{
+      peekMonthRows(mk).forEach(row=> out.push({row, monthKey: mk}));
+    });
+    return out;
+  }
+  function colIdByLabel(label, fallback){
+    return (state.overview.columns.find(c=>c.label===label)||{}).id || fallback;
+  }
+  // Parses a row's "日期" text (e.g. "9/2") together with its month bucket's
+  // year/month into a real, comparable Date. Returns null if the row has no
+  // usable date (e.g. one of the still-blank template rows).
+  function rowDate(row, mkey){
+    const dateColId = colIdByLabel('日期','date');
+    const raw = row.cells[dateColId] ? row.cells[dateColId].v : '';
+    const m = /^(\d{1,2})\s*\/\s*(\d{1,2})/.exec((raw||'').trim());
+    if(!m) return null;
+    const [y, mo] = mkey.split('-').map(Number);
+    return new Date(y, mo-1, parseInt(m[2],10));
+  }
+  // A row only counts as an actual recorded service once it has both a date
+  // and a customer name — the pre-seeded blank rows have neither.
+  function isRealServiceRow(row){
+    const nameColId = colIdByLabel('姓名','name');
+    const name = row.cells[nameColId] ? (row.cells[nameColId].v||'').trim() : '';
+    return !!name;
+  }
+  function sortKey(d){ return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate(); }
+
+  // For every customer name, find their earliest ever row (their "first visit").
+  // Everything after that, for the same name, counts as a returning visit.
+  function computeFirstVisitMap(){
+    const nameColId = colIdByLabel('姓名','name');
+    const map = {}; // name -> {sortKey}
+    allRowsWithMonth().forEach(({row, monthKey:mk})=>{
+      if(!isRealServiceRow(row)) return;
+      const name = (row.cells[nameColId].v||'').trim();
+      const d = rowDate(row, mk);
+      if(!d) return;
+      const sk = sortKey(d);
+      if(!map[name] || sk < map[name].sortKey){
+        map[name] = { sortKey: sk };
+      }
+    });
+    return map;
+  }
+
+  function periodRange(period, anchor){
+    const today = anchor || new Date();
+    const y = today.getFullYear(), mo = today.getMonth(), d = today.getDate();
+    if(period==='today'){
+      const start = new Date(y,mo,d);
+      const end = new Date(y,mo,d);
+      return {start, end};
+    }
+    if(period==='week'){
+      const dow = today.getDay(); // 0=Sun
+      const monday = new Date(y,mo,d - ((dow+6)%7));
+      const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+      return {start:monday, end:sunday};
+    }
+    if(period==='year'){
+      return {start:new Date(y,0,1), end:new Date(y,11,31)};
+    }
+    // month
+    return {start:new Date(y,mo,1), end:new Date(y,mo+1,0)};
+  }
+
+  function rowsInPeriod(period, anchor){
+    const {start, end} = periodRange(period, anchor);
+    const startKey = sortKey(start), endKey = sortKey(end);
+    return allRowsWithMonth().filter(({row, monthKey:mk})=>{
+      if(!isRealServiceRow(row)) return false;
+      const d = rowDate(row, mk);
+      if(!d) return false;
+      const sk = sortKey(d);
+      return sk>=startKey && sk<=endKey;
+    });
+  }
+
+  function monthsOverlappingPeriod(period, anchor){
+    const {start, end} = periodRange(period, anchor);
+    const keys = [];
+    let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+    const last = new Date(end.getFullYear(), end.getMonth(), 1);
+    while(cur<=last){
+      keys.push(monthKey(cur));
+      cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+    }
+    return keys;
+  }
+
+  function computeDashboardStats(period){
+    const anchor = new Date();
+    const entries = rowsInPeriod(period, anchor);
+    const revenueColId = colIdByLabel('營收','revenue');
+    const receivedColId = colIdByLabel('實收','received');
+    const commissionColId = colIdByLabel('抽成','commission');
+    const nameColId = colIdByLabel('姓名','name');
+
+    let revenue=0, received=0, commission=0, materialCost=0;
+    let newCount=0, returningCount=0;
+    const firstVisitMap = computeFirstVisitMap();
+
+    entries.forEach(({row, monthKey:mk})=>{
+      const rv = parseNum(row.cells[revenueColId]?row.cells[revenueColId].v:''); if(!isNaN(rv)) revenue += rv;
+      const rc = parseNum(row.cells[receivedColId]?row.cells[receivedColId].v:''); const rcNum = isNaN(rc)?0:rc;
+      if(!isNaN(rc)) received += rc;
+      if(rcNum<0) materialCost += Math.abs(rcNum);
+      const cm = parseNum(row.cells[commissionColId]?row.cells[commissionColId].v:''); if(!isNaN(cm)) commission += cm;
+      const name = row.cells[nameColId] ? (row.cells[nameColId].v||'').trim() : '';
+      if(name){
+        const sk = sortKey(rowDate(row, mk));
+        const isFirst = firstVisitMap[name] && firstVisitMap[name].sortKey===sk;
+        if(isFirst) newCount++; else returningCount++;
+      }
+    });
+
+    const serviceCount = entries.length;
+    const avgTicket = serviceCount ? received/serviceCount : 0;
+    const returnRate = serviceCount ? returningCount/serviceCount : 0;
+
+    // personnel cost: today/week only count commission paid out; month/year
+    // pull in the full payroll settlement (base salary etc. included)
+    let personnelCost = commission;
+    if(period==='month' || period==='year'){
+      personnelCost = 0;
+      monthsOverlappingPeriod(period, anchor).forEach(mk=>{
+        const rows = peekMonthRows(mk);
+        const commissionColIdLocal = commissionColId;
+        let monthCommission = 0;
+        rows.forEach(row=>{
+          const v = parseNum(row.cells[commissionColIdLocal]?row.cells[commissionColIdLocal].v:'');
+          if(!isNaN(v)) monthCommission += v;
+        });
+        const payroll = peekMonthPayroll(mk);
+        let payrollExtra = 0;
+        if(payroll){
+          PAYROLL_FIELDS.forEach(f=>{
+            const v = parseNum(payroll[f.id] ? payroll[f.id].v : '');
+            if(!isNaN(v)) payrollExtra += v;
+          });
+        }
+        personnelCost += monthCommission + payrollExtra;
+      });
+    }
+    const grossProfit = received - personnelCost;
+
+    return { revenue, received, commission, serviceCount, avgTicket, newCount, returningCount, returnRate, materialCost, grossProfit };
+  }
+
+  function renderDashboard(period){
+    const grid = document.getElementById('dashGrid');
+    if(!grid) return;
+    const s = computeDashboardStats(period||state.dashPeriod||'month');
+    const pct = Math.round(s.returnRate*100);
+    const cards = [
+      {label:'營收', value:'$'+fmtNum(s.revenue)},
+      {label:'實收', value:'$'+fmtNum(s.received)},
+      {label:'抽成', value:'$'+fmtNum(s.commission)},
+      {label:'服務人數', value:s.serviceCount+' 筆'},
+      {label:'平均客單價', value:'$'+fmtNum(Math.round(s.avgTicket))},
+      {label:'新客人數', value:s.newCount+' 人'},
+      {label:'舊客人數', value:s.returningCount+' 人'},
+      {label:'回訪率', value:pct+'%'},
+      {label:'耗材成本', value:'$'+fmtNum(s.materialCost), neg:true},
+      {label:'期間毛利', value:'$'+fmtNum(s.grossProfit), highlight:true},
+    ];
+    grid.innerHTML = cards.map(c=>`
+      <div class="dash-card ${c.highlight?'highlight':''}">
+        <div class="dash-card-label">${escapeHtml(c.label)}</div>
+        <div class="dash-card-value ${c.neg?'neg':''}">${c.value}</div>
+      </div>`).join('');
+  }
+
+  function defaultOverview(){
+    const key = monthKey(new Date());
+    return {
+      columns: JSON.parse(JSON.stringify(DEFAULT_COLUMNS)),
+      monthlyRows: {
+        [key]: [
+          sampleRow('9/2','王小美','美胸+暖宮',1800,1800,720,'範例列，可刪除'),
+          sampleRow('9/3','王小美','美胸+暖宮',1800,1800,720,'範例列，可刪除'),
+        ]
+      },
+      monthlyPayroll: {},
+      defaultBaseSalary: '',
+    };
+  }
+
+  // Older saved data (before month-view existed) stored a single flat
+  // "rows" array. Migrate it into the month bucket instead of discarding it.
+  function migrateOverviewIfNeeded(ov){
+    if(!ov) return ov;
+    if(!ov.monthlyRows){
+      const key = monthKey(new Date());
+      ov.monthlyRows = {};
+      if(Array.isArray(ov.rows)) ov.monthlyRows[key] = ov.rows;
+      delete ov.rows;
+    }
+    if(!ov.monthlyPayroll) ov.monthlyPayroll = {};
+    if(ov.defaultBaseSalary===undefined) ov.defaultBaseSalary = '';
+    return ov;
+  }
+
+  // ---- payroll settlement (each month has its own set of amounts) ----
+  const PAYROLL_FIELDS = [
+    {id:'baseSalary', label:'底薪'},
+    {id:'phone', label:'電話費'},
+    {id:'advance', label:'預墊找零'},
+    {id:'other1', label:'其他'},
+    {id:'insurance', label:'勞健保'},
+    {id:'other2', label:'其他'},
+  ];
+  function payrollCell(v){ return {v: v==null?'':String(v), color:'', bg:'', align:'', fontSize:'', noBorder:false}; }
+  function blankPayroll(){
+    const p = {};
+    PAYROLL_FIELDS.forEach(f=>{ p[f.id] = payrollCell(f.id==='baseSalary' ? (state.overview.defaultBaseSalary||'') : ''); });
+    p.total = payrollCell(''); // holds styling only — its value is always computed, never typed
+    return p;
+  }
+  function getMonthPayroll(key){
+    if(!state.overview.monthlyPayroll) state.overview.monthlyPayroll = {};
+    if(!state.overview.monthlyPayroll[key]) state.overview.monthlyPayroll[key] = blankPayroll();
+    return state.overview.monthlyPayroll[key];
+  }
+  function currentMonthPayroll(){ return getMonthPayroll(state.overviewMonth); }
+
+  function computePayrollTotal(){
+    const commissionCol = state.overview.columns.find(c=>c.label==='抽成');
+    const commissionColId = commissionCol ? commissionCol.id : null;
+    let sum = 0;
+    if(commissionColId){
+      currentMonthRows().forEach(row=>{
+        const v = parseNum(row.cells[commissionColId] ? row.cells[commissionColId].v : '');
+        sum += isNaN(v)?0:v;
+      });
+    }
+    const p = currentMonthPayroll();
+    PAYROLL_FIELDS.forEach(f=>{
+      const v = parseNum(p[f.id].v);
+      sum += isNaN(v)?0:v;
+    });
+    return sum;
+  }
+
+  const EMOJI_OPTIONS = ['💇‍♀️','💅','✨','🌸','💄','🧖‍♀️','🪞','🧴'];
+  const COLOR_OPTIONS = ['#7A2E43','#B5484F','#4F7A5B','#3E5C76','#8A6D3B','#5B4B8A','#2B1F27'];
+
+  const state = {
+    overview: defaultOverview(),
+    overviewMonth: monthKey(new Date()),
+    customers: [],
+    appointments: {}, // "YYYY-MM-DD" -> [{id,time,name,note}]
+    brand: {name:'美業後台營運報表', emoji:'💇‍♀️', color:'#7A2E43'},
+    selection: null, // {type:'cell'|'row'|'col', rowId, colId}
+    calDate: new Date(),
+    dashPeriod: 'month',
+  };
+
+
+  /* ================= TABS (bind first, no dependency on data) ================= */
+  function bindTabs(){
+    document.querySelectorAll('.tab-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+        btn.classList.add('active');
+        const panel = document.getElementById('panel-'+btn.dataset.tab);
+        if(panel) panel.classList.add('active');
+        if(btn.dataset.tab==='dashboard') renderDashboard(state.dashPeriod);
+        if(btn.dataset.tab==='customers') renderCustomers();
+        if(btn.dataset.tab==='calendar') renderCalendar();
+      });
+    });
+    document.querySelectorAll('.period-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        state.dashPeriod = btn.dataset.period;
+        renderDashboard(state.dashPeriod);
+      });
+    });
+  }
+
+  /* ================= OVERVIEW ================= */
+  function renderColgroup(){
+    const ov = state.overview;
+    const colgroup = document.getElementById('sheetColgroup');
+    if(!colgroup) return;
+    let html = `<col data-col="__idx" style="width:${ov.idxColWidth||44}px">`;
+    ov.columns.forEach(col=>{
+      html += `<col data-col="${col.id}" style="width:${col.width||120}px">`;
+    });
+    html += '<col style="width:78px">';
+    colgroup.innerHTML = html;
+  }
+
+  function renderMonthNav(){
+    const label = document.getElementById('ovMonthLabel');
+    if(label) label.textContent = monthKeyLabel(state.overviewMonth);
+  }
+
+  function renderOverview(){
+    const ov = state.overview;
+    const rows = currentMonthRows();
+    const head = document.getElementById('sheetHead');
+    const body = document.getElementById('sheetBody');
+
+    renderColgroup();
+    renderMonthNav();
+
+    // header
+    let headHtml = '<tr><th class="th-idx"><div class="col-resize-handle" data-col="__idx" title="拖曳調整這欄寬度"></div></th>';
+    ov.columns.forEach(col=>{
+      const isSel = state.selection && state.selection.type==='col' && state.selection.colId===col.id;
+      const headAlignStyle = col.align ? `text-align:${col.align};` : '';
+      const headFontStyle = col.fontSize ? `font-size:${col.fontSize}px;` : '';
+      headHtml += `<th data-col="${col.id}" class="${isSel?'selected':''}">
+        <div class="th-inner" data-col="${col.id}" style="${headAlignStyle}${headFontStyle}">
+          <span class="th-label" contenteditable="true" data-col="${col.id}">${escapeHtml(col.label)}</span>
+          <button type="button" class="th-del" data-col="${col.id}" title="刪除欄位">✕</button>
+          <div class="col-resize-handle" data-col="${col.id}" title="拖曳調整欄寬"></div>
+        </div>
+      </th>`;
+    });
+    headHtml += `<th class="th-add-cell" id="addColBtn"><div class="th-add-inner">＋ 新增欄</div></th></tr>`;
+    head.innerHTML = headHtml;
+
+    // body
+    let bodyHtml = '';
+    rows.forEach((row, idx)=>{
+      const rowSel = state.selection && state.selection.type==='row' && state.selection.rowId===row.id;
+      const rowHeightStyle = row.height ? `style="height:${row.height}px"` : '';
+      bodyHtml += `<tr data-row="${row.id}" class="${rowSel?'row-selected':''}" ${rowHeightStyle}>
+        <td class="cell-idx" data-row="${row.id}">
+          <div class="cell-idx-inner">
+            <span class="idx-num" contenteditable="true" data-row="${row.id}" data-default="${idx+1}">${escapeHtml(row.label || String(idx+1))}</span>
+            <button type="button" class="idx-del" data-row="${row.id}" title="刪除這一列">✕</button>
+            <div class="row-resize-handle" data-row="${row.id}" title="拖曳調整列高"></div>
+          </div>
+        </td>`;
+      ov.columns.forEach(col=>{
+        const cell = row.cells[col.id] || {v:'',color:'',bg:'',align:''};
+        const isNum = col.type==='number';
+        const raw = cell.v || '';
+        const numVal = isNum ? parseNum(raw) : NaN;
+        const display = isNum && !isNaN(numVal) ? fmtNum(numVal) : escapeHtml(raw);
+        const negClass = isNum && !isNaN(numVal) && numVal<0 ? 'neg' : '';
+        const selClass = state.selection && state.selection.type==='cell' && state.selection.rowId===row.id && state.selection.colId===col.id ? 'selected' : '';
+        const alignStyle = cell.align ? `text-align:${cell.align};` : '';
+        const borderStyle = cell.noBorder ? `border-style:hidden;` : '';
+        const fontStyle = cell.fontSize ? `font-size:${cell.fontSize}px;` : '';
+        const style = `${cell.color?`color:${cell.color};`:''}${cell.bg?`background:${cell.bg};`:''}${alignStyle}${borderStyle}${fontStyle}`;
+        bodyHtml += `<td class="${isNum && !cell.align?'num-cell':''} ${selClass}" data-row="${row.id}" data-col="${col.id}" style="${style}">
+          <div class="cell-input ${negClass}" contenteditable="true" data-row="${row.id}" data-col="${col.id}" data-type="${col.type}">${display}</div>
+        </td>`;
+      });
+      bodyHtml += `</tr>`;
+    });
+    body.innerHTML = bodyHtml || '';
+
+    renderFooter();
+    renderPayroll();
+    updateSelLabel();
+  }
+
+  function renderPayroll(){
+    const container = document.getElementById('payrollTable');
+    if(!container) return;
+    const p = currentMonthPayroll();
+    let html = '';
+    PAYROLL_FIELDS.forEach(f=>{
+      const cell = p[f.id];
+      const isSel = state.selection && state.selection.type==='payroll' && state.selection.field===f.id;
+      const n = parseNum(cell.v);
+      const negClass = !isNaN(n) && n<0 ? 'neg' : '';
+      const alignStyle = cell.align ? `text-align:${cell.align};` : 'text-align:right;';
+      const fontStyle = cell.fontSize ? `font-size:${cell.fontSize}px;` : '';
+      const style = `${cell.color?`color:${cell.color};`:''}${cell.bg?`background:${cell.bg};`:''}${alignStyle}${fontStyle}`;
+      html += `<div class="payroll-row ${isSel?'selected':''}" data-field="${f.id}">
+        <div class="payroll-label">${escapeHtml(f.label)}</div>
+        <div class="payroll-value ${negClass}" contenteditable="true" data-field="${f.id}" style="${style}">${escapeHtml(cell.v)}</div>
+      </div>`;
+    });
+    const totalCell = p.total;
+    const totalVal = computePayrollTotal();
+    const isSelTotal = state.selection && state.selection.type==='payroll' && state.selection.field==='total';
+    const totalAlign = totalCell.align ? `text-align:${totalCell.align};` : 'text-align:right;';
+    const totalFont = totalCell.fontSize ? `font-size:${totalCell.fontSize}px;` : '';
+    const totalStyle = `${totalCell.color?`color:${totalCell.color};`:''}${totalCell.bg?`background:${totalCell.bg};`:''}${totalAlign}${totalFont}`;
+    html += `<div class="payroll-row total ${isSelTotal?'selected':''}" data-field="total">
+      <div class="payroll-label">薪資</div>
+      <div class="payroll-value readonly ${totalVal<0?'neg':''}" data-field="total" style="${totalStyle}">${fmtNum(totalVal)}</div>
+    </div>`;
+    container.innerHTML = html;
+  }
+
+  function selectPayrollField(field){
+    clearSelectionHighlight();
+    document.querySelectorAll('#payrollTable .payroll-row.selected').forEach(el=>el.classList.remove('selected'));
+    state.selection = {type:'payroll', field};
+    const row = document.querySelector(`#payrollTable .payroll-row[data-field="${field}"]`);
+    if(row) row.classList.add('selected');
+    const p = currentMonthPayroll();
+    const c = p[field] || {};
+    document.getElementById('txtColorInput').value = c.color || '#2b1f27';
+    document.getElementById('bgColorInput').value = c.bg || '#ffffff';
+    document.getElementById('fontSizeSelect').value = c.fontSize || '';
+    updateSelLabel();
+  }
+
+  function renderFooter(){
+    const ov = state.overview;
+    const rows = currentMonthRows();
+    const foot = document.getElementById('sheetFoot');
+    let html = '<tr><td class="foot-label" style="text-align:center;">合計</td>';
+    ov.columns.forEach(col=>{
+      if(col.type==='number'){
+        const sum = rows.reduce((acc,row)=>{
+          const v = parseNum(row.cells[col.id] ? row.cells[col.id].v : '');
+          return acc + (isNaN(v)?0:v);
+        },0);
+        const cls = sum<0 ? 'neg' : '';
+        html += `<td class="num-cell ${cls}" data-foot="${col.id}">${fmtNum(sum)}</td>`;
+      } else {
+        html += `<td></td>`;
+      }
+    });
+    html += '</tr>';
+    foot.innerHTML = html;
+
+  }
+
+  function updateSelLabel(){
+    const lbl = document.getElementById('selLabel');
+    if(!lbl) return;
+    const sel = state.selection;
+    if(!sel){ lbl.textContent = '尚未選取（點欄名／列號／格子來選取上色範圍）'; return; }
+    if(sel.type==='cell') lbl.textContent = '已選取：單一格';
+    if(sel.type==='row') lbl.textContent = '已選取：整列';
+    if(sel.type==='col'){
+      const col = state.overview.columns.find(c=>c.id===sel.colId);
+      lbl.textContent = '已選取：整欄「'+(col?col.label:'')+'」';
+    }
+    if(sel.type==='payroll'){
+      const f = PAYROLL_FIELDS.find(x=>x.id===sel.field);
+      lbl.textContent = '已選取：薪資結算「'+(f?f.label:'薪資')+'」';
+    }
+  }
+
+  // lightweight selection: only toggles CSS classes, never rebuilds the table
+  // (rebuilding on every selection was destroying the "+ 新增欄" button's
+  // listener and stealing focus while typing — this fixes that)
+  function clearSelectionHighlight(){
+    document.querySelectorAll('#sheetTable .selected').forEach(el=>el.classList.remove('selected'));
+    document.querySelectorAll('#sheetTable .row-selected').forEach(el=>el.classList.remove('row-selected'));
+  }
+
+  function selectCell(rowId, colId){
+    clearSelectionHighlight();
+    state.selection = {type:'cell', rowId, colId};
+    const td = document.querySelector(`#sheetBody td[data-row="${rowId}"][data-col="${colId}"]`);
+    if(td) td.classList.add('selected');
+    const row = currentMonthRows().find(r=>r.id===rowId);
+    const c = row ? (row.cells[colId] || {}) : {};
+    document.getElementById('txtColorInput').value = c.color || '#2b1f27';
+    document.getElementById('bgColorInput').value = c.bg || '#ffffff';
+    document.getElementById('fontSizeSelect').value = c.fontSize || '';
+    updateSelLabel();
+  }
+
+  function selectRow(rowId){
+    clearSelectionHighlight();
+    state.selection = {type:'row', rowId};
+    const tr = document.querySelector(`#sheetBody tr[data-row="${rowId}"]`);
+    if(tr) tr.classList.add('row-selected');
+    updateSelLabel();
+  }
+
+  function selectCol(colId){
+    clearSelectionHighlight();
+    state.selection = {type:'col', colId};
+    document.querySelectorAll(`#sheetBody td[data-col="${colId}"]`).forEach(td=>td.classList.add('selected'));
+    const th = document.querySelector(`#sheetHead th[data-col="${colId}"]`);
+    if(th) th.classList.add('selected');
+    updateSelLabel();
+  }
+
+  function bindOverviewEvents(){
+    const head = document.getElementById('sheetHead');
+    const body = document.getElementById('sheetBody');
+
+    // ---- column resize (drag the handle at the right edge of a header) ----
+    let resizing = null; // {colId, startX, startWidth, liveWidth}
+    function onResizeMove(e){
+      if(!resizing) return;
+      const delta = (e.touches ? e.touches[0].clientX : e.clientX) - resizing.startX;
+      const minWidth = resizing.colId==='__idx' ? 24 : 50;
+      const newWidth = Math.max(minWidth, Math.round(resizing.startWidth + delta));
+      const colEl = document.querySelector(`#sheetColgroup col[data-col="${resizing.colId}"]`);
+      if(colEl) colEl.style.width = newWidth+'px';
+      resizing.liveWidth = newWidth;
+    }
+    function onResizeEnd(){
+      if(!resizing) return;
+      const handle = document.querySelector(`.col-resize-handle[data-col="${resizing.colId}"]`);
+      if(handle) handle.classList.remove('active');
+      if(resizing.colId==='__idx'){
+        if(resizing.liveWidth) state.overview.idxColWidth = resizing.liveWidth;
+      } else {
+        const col = state.overview.columns.find(c=>c.id===resizing.colId);
+        if(col && resizing.liveWidth) col.width = resizing.liveWidth;
+      }
+      resizing = null;
+      document.removeEventListener('pointermove', onResizeMove);
+      document.removeEventListener('pointerup', onResizeEnd);
+      document.body.style.userSelect = '';
+      saveOverview();
+    }
+    head.addEventListener('pointerdown', (e)=>{
+      const handle = e.target.closest('.col-resize-handle');
+      if(!handle) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const colId = handle.dataset.col;
+      let startWidth;
+      if(colId==='__idx'){
+        startWidth = state.overview.idxColWidth || 44;
+      } else {
+        const col = state.overview.columns.find(c=>c.id===colId);
+        startWidth = (col && col.width) || 120;
+      }
+      resizing = { colId, startX: e.clientX, startWidth };
+      handle.classList.add('active');
+      document.body.style.userSelect = 'none';
+      document.addEventListener('pointermove', onResizeMove);
+      document.addEventListener('pointerup', onResizeEnd);
+    });
+
+    // ---- row resize (drag the handle at the bottom edge of a row's index cell) ----
+    let rowResizing = null; // {rowId, startY, startHeight, liveHeight}
+    function onRowResizeMove(e){
+      if(!rowResizing) return;
+      const delta = (e.touches ? e.touches[0].clientY : e.clientY) - rowResizing.startY;
+      const newHeight = Math.max(30, Math.round(rowResizing.startHeight + delta));
+      const tr = document.querySelector(`#sheetBody tr[data-row="${rowResizing.rowId}"]`);
+      if(tr) tr.style.height = newHeight+'px';
+      rowResizing.liveHeight = newHeight;
+    }
+    function onRowResizeEnd(){
+      if(!rowResizing) return;
+      const handle = document.querySelector(`.row-resize-handle[data-row="${rowResizing.rowId}"]`);
+      if(handle) handle.classList.remove('active');
+      const row = currentMonthRows().find(r=>r.id===rowResizing.rowId);
+      if(row && rowResizing.liveHeight) row.height = rowResizing.liveHeight;
+      rowResizing = null;
+      document.removeEventListener('pointermove', onRowResizeMove);
+      document.removeEventListener('pointerup', onRowResizeEnd);
+      document.body.style.userSelect = '';
+      saveOverview();
+    }
+    body.addEventListener('pointerdown', (e)=>{
+      const handle = e.target.closest('.row-resize-handle');
+      if(!handle) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const rowId = handle.dataset.row;
+      const tr = document.querySelector(`#sheetBody tr[data-row="${rowId}"]`);
+      const row = currentMonthRows().find(r=>r.id===rowId);
+      rowResizing = { rowId, startY: e.clientY, startHeight: (row && row.height) || (tr ? tr.getBoundingClientRect().height : 40) };
+      handle.classList.add('active');
+      document.body.style.userSelect = 'none';
+      document.addEventListener('pointermove', onRowResizeMove);
+      document.addEventListener('pointerup', onRowResizeEnd);
+    });
+
+    // header: delegated clicks (works even after renderOverview rebuilds the thead)
+    head.addEventListener('click', (e)=>{
+      if(e.target.closest('.col-resize-handle')) return;
+      const addBtn = e.target.closest('#addColBtn');
+      if(addBtn){ openColumnModal(); return; }
+
+      const delBtn = e.target.closest('.th-del');
+      if(delBtn){
+        const colId = delBtn.dataset.col;
+        if(state.overview.columns.length<=1){ alert('至少需保留一欄'); return; }
+        if(confirm('確定要刪除這個欄位嗎？此操作無法復原。')){
+          state.overview.columns = state.overview.columns.filter(c=>c.id!==colId);
+          Object.values(state.overview.monthlyRows).forEach(rows=>{ rows.forEach(r=>{ delete r.cells[colId]; }); });
+          state.selection = null;
+          renderOverview();
+          saveOverview();
+        }
+        return;
+      }
+
+      if(e.target.classList.contains('th-label')) { selectCol(e.target.dataset.col); return; }
+      const thInner = e.target.closest('.th-inner');
+      if(thInner){ selectCol(thInner.dataset.col); }
+    });
+
+    head.addEventListener('blur', (e)=>{
+      if(e.target.classList.contains('th-label')){
+        const colId = e.target.dataset.col;
+        const col = state.overview.columns.find(c=>c.id===colId);
+        if(col){ col.label = e.target.textContent.trim() || col.label; }
+        saveOverview();
+      }
+    }, true);
+
+    // row index: select row / delete row (delegated — always visible, no hover dependency)
+    body.addEventListener('click', (e)=>{
+      if(e.target.closest('.row-resize-handle')) return;
+      const delBtn = e.target.closest('.idx-del');
+      if(delBtn){
+        const rowId = delBtn.dataset.row;
+        if(confirm('確定要刪除這一列嗎？')){
+          state.overview.monthlyRows[state.overviewMonth] = currentMonthRows().filter(r=>r.id!==rowId);
+          state.selection = null;
+          renderOverview();
+          saveOverview();
+        }
+        return;
+      }
+      const idxNum = e.target.closest('.idx-num');
+      if(idxNum){ selectRow(idxNum.dataset.row); return; }
+
+      const cellInput = e.target.closest('.cell-input');
+      if(cellInput){ selectCell(cellInput.dataset.row, cellInput.dataset.col); }
+    });
+
+    // typing in cells -> update state + live totals, no full re-render (preserve cursor)
+    body.addEventListener('input', (e)=>{
+      const el = e.target;
+      if(el.classList.contains('idx-num')){
+        // the row-number column can be overwritten with custom text (e.g. "電話費")
+        const rowId = el.dataset.row;
+        const row = currentMonthRows().find(r=>r.id===rowId);
+        if(row){
+          const typed = el.textContent;
+          row.label = (typed.trim() === el.dataset.default) ? '' : typed;
+          saveOverview();
+        }
+        return;
+      }
+      if(!el.classList.contains('cell-input')) return;
+      const rowId = el.dataset.row, colId = el.dataset.col, type = el.dataset.type;
+      const row = currentMonthRows().find(r=>r.id===rowId);
+      if(!row) return;
+      if(!row.cells[colId]) row.cells[colId] = {v:'',color:'',bg:''};
+      row.cells[colId].v = el.textContent;
+      if(type==='number'){
+        const n = parseNum(el.textContent);
+        el.classList.toggle('neg', !isNaN(n) && n<0);
+        renderFooter();
+        renderPayrollTotalOnly(); // 抽成 column feeds directly into 薪資結算's total
+      }
+      saveOverview();
+    });
+
+    // format number cells nicely on blur
+    body.addEventListener('blur', (e)=>{
+      const el = e.target;
+      if(!el.classList || !el.classList.contains('cell-input')) return;
+      if(el.dataset.type==='number'){
+        const n = parseNum(el.textContent);
+        if(!isNaN(n)){ el.textContent = fmtNum(n); }
+      }
+    }, true);
+
+    document.getElementById('addRowBtn').addEventListener('click', ()=>{
+      const cells = {};
+      state.overview.columns.forEach(c=> cells[c.id] = {v:'',color:'',bg:'',align:''});
+      currentMonthRows().push({id:uid(), cells});
+      renderOverview();
+      saveOverview();
+    });
+
+    // month navigation — switching months never deletes other months' rows
+    document.getElementById('ovMonthPrev').addEventListener('click', ()=>{
+      state.overviewMonth = shiftMonthKey(state.overviewMonth, -1);
+      state.selection = null;
+      renderOverview();
+    });
+    document.getElementById('ovMonthNext').addEventListener('click', ()=>{
+      state.overviewMonth = shiftMonthKey(state.overviewMonth, 1);
+      state.selection = null;
+      renderOverview();
+    });
+    document.getElementById('ovMonthToday').addEventListener('click', ()=>{
+      state.overviewMonth = monthKey(new Date());
+      state.selection = null;
+      renderOverview();
+    });
+
+    // text alignment — applies to whatever is currently selected (cell/row/col)
+    document.getElementById('alignLeftBtn').addEventListener('click', ()=> applyAlign('left'));
+    document.getElementById('alignCenterBtn').addEventListener('click', ()=> applyAlign('center'));
+    document.getElementById('alignRightBtn').addEventListener('click', ()=> applyAlign('right'));
+    document.getElementById('borderOnBtn').addEventListener('click', ()=> applyBorder(true));
+    document.getElementById('borderOffBtn').addEventListener('click', ()=> applyBorder(false));
+    document.getElementById('fontSizeSelect').addEventListener('change', (e)=> applyFontSize(e.target.value));
+
+    // color pickers apply to current selection
+    document.getElementById('txtColorInput').addEventListener('input', (e)=> applyColor('color', e.target.value));
+    document.getElementById('bgColorInput').addEventListener('input', (e)=> applyColor('bg', e.target.value));
+    document.getElementById('clearColorBtn').addEventListener('click', ()=>{ applyColor('color',''); applyColor('bg',''); });
+
+    bindSheetZoom();
+    bindPayrollEvents();
+  }
+
+  function bindPayrollEvents(){
+    const container = document.getElementById('payrollTable');
+    if(!container) return;
+    container.addEventListener('click', (e)=>{
+      const valueEl = e.target.closest('.payroll-value');
+      if(valueEl) selectPayrollField(valueEl.dataset.field);
+    });
+    container.addEventListener('input', (e)=>{
+      const el = e.target;
+      if(!el.classList.contains('payroll-value') || el.classList.contains('readonly')) return;
+      const field = el.dataset.field;
+      const p = currentMonthPayroll();
+      if(!p[field]) return;
+      p[field].v = el.textContent;
+      const n = parseNum(el.textContent);
+      el.classList.toggle('neg', !isNaN(n) && n<0);
+      if(field==='baseSalary'){
+        // "底薪" is meant to stay fixed — carry it forward as the default for any month not yet created
+        state.overview.defaultBaseSalary = el.textContent;
+      }
+      renderPayrollTotalOnly();
+      saveOverview();
+    });
+    container.addEventListener('blur', (e)=>{
+      const el = e.target;
+      if(!el.classList || !el.classList.contains('payroll-value') || el.classList.contains('readonly')) return;
+      const n = parseNum(el.textContent);
+      if(!isNaN(n)) el.textContent = fmtNum(n);
+    }, true);
+  }
+
+  function renderPayrollTotalOnly(){
+    const totalEl = document.querySelector('#payrollTable .payroll-value[data-field="total"]');
+    if(!totalEl) return;
+    const totalVal = computePayrollTotal();
+    totalEl.textContent = fmtNum(totalVal);
+    totalEl.classList.toggle('neg', totalVal<0);
+  }
+
+  /* ---- table zoom: buttons + two-finger pinch, like zooming a photo ---- */
+  function bindSheetZoom(){
+    let zoom = 1;
+    const MIN_ZOOM = 0.25, MAX_ZOOM = 2.5;
+    const inner = document.getElementById('sheetZoomInner');
+    const wrap = document.getElementById('sheetWrap');
+    const pctLabel = document.getElementById('zoomPct');
+
+    function setZoom(z, focalX, focalY){
+      const prevZoom = zoom;
+      zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+      // keep whatever point the person is zooming around under their fingers/cursor
+      if(focalX!=null && wrap){
+        const scrollRatioX = (wrap.scrollLeft + focalX) / prevZoom;
+        const scrollRatioY = (wrap.scrollTop + focalY) / prevZoom;
+        inner.style.zoom = zoom;
+        wrap.scrollLeft = scrollRatioX*zoom - focalX;
+        wrap.scrollTop = scrollRatioY*zoom - focalY;
+      } else {
+        inner.style.zoom = zoom;
+      }
+      pctLabel.textContent = Math.round(zoom*100) + '%';
+    }
+
+    document.getElementById('zoomOutBtn').addEventListener('click', ()=> setZoom(Math.round((zoom-0.1)*10)/10));
+    document.getElementById('zoomInBtn').addEventListener('click', ()=> setZoom(Math.round((zoom+0.1)*10)/10));
+
+    // two-finger pinch (touch devices)
+    let pinch = null; // {startDist, startZoom}
+    function dist(t1,t2){ return Math.hypot(t1.clientX-t2.clientX, t1.clientY-t2.clientY); }
+    wrap.addEventListener('touchstart', (e)=>{
+      if(e.touches.length===2){
+        const rect = wrap.getBoundingClientRect();
+        const midX = (e.touches[0].clientX + e.touches[1].clientX)/2 - rect.left;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY)/2 - rect.top;
+        pinch = { startDist: dist(e.touches[0], e.touches[1]), startZoom: zoom, midX, midY };
+      }
+    }, {passive:true});
+    wrap.addEventListener('touchmove', (e)=>{
+      if(pinch && e.touches.length===2){
+        e.preventDefault();
+        const d = dist(e.touches[0], e.touches[1]);
+        const ratio = d / pinch.startDist;
+        setZoom(pinch.startZoom * ratio, pinch.midX, pinch.midY);
+      }
+    }, {passive:false});
+    wrap.addEventListener('touchend', (e)=>{
+      if(e.touches.length<2) pinch = null;
+    }, {passive:true});
+  }
+
+  function applyColor(prop, value){
+    const sel = state.selection;
+    if(!sel){ alert('請先點選欄名、列號或格子'); return; }
+    const ov = state.overview;
+    const rows = currentMonthRows();
+    if(sel.type==='cell'){
+      const row = rows.find(r=>r.id===sel.rowId);
+      if(row){ if(!row.cells[sel.colId]) row.cells[sel.colId]={v:'',color:'',bg:'',align:''}; row.cells[sel.colId][prop]=value; }
+    } else if(sel.type==='row'){
+      const row = rows.find(r=>r.id===sel.rowId);
+      if(row){ ov.columns.forEach(c=>{ if(!row.cells[c.id]) row.cells[c.id]={v:'',color:'',bg:'',align:''}; row.cells[c.id][prop]=value; }); }
+    } else if(sel.type==='col'){
+      rows.forEach(row=>{ if(!row.cells[sel.colId]) row.cells[sel.colId]={v:'',color:'',bg:'',align:''}; row.cells[sel.colId][prop]=value; });
+    } else if(sel.type==='payroll'){
+      const p = currentMonthPayroll();
+      if(p[sel.field]) p[sel.field][prop] = value;
+    }
+    renderOverview();
+    renderPayroll();
+    saveOverview();
+  }
+
+  function applyAlign(align){
+    const sel = state.selection;
+    if(!sel){ alert('請先點選欄名、列號或格子'); return; }
+    if(sel.type==='col'){
+      // whole-column select also aligns the header label itself, not just the data cells below it
+      const col = state.overview.columns.find(c=>c.id===sel.colId);
+      if(col) col.align = align;
+    }
+    applyColor('align', align);
+  }
+
+  function applyBorder(hasBorder){
+    applyColor('noBorder', !hasBorder);
+  }
+
+  function applyFontSize(px){
+    const sel = state.selection;
+    if(!sel){ alert('請先點選欄名、列號或格子'); return; }
+    if(sel.type==='col'){
+      // whole-column select also resizes the header label text, not just the data below it
+      const col = state.overview.columns.find(c=>c.id===sel.colId);
+      if(col) col.fontSize = px;
+    }
+    applyColor('fontSize', px);
+  }
+
+  /* column add modal */
+  function openColumnModal(){
+    document.getElementById('newColName').value='';
+    document.querySelector('input[name=colType][value=text]').checked = true;
+    document.getElementById('colModalMask').classList.add('show');
+    setTimeout(()=>document.getElementById('newColName').focus(), 50);
+  }
+  function bindColumnModal(){
+    document.getElementById('colModalCancel').addEventListener('click', ()=>{
+      document.getElementById('colModalMask').classList.remove('show');
+    });
+    document.getElementById('colModalMask').addEventListener('click', (e)=>{
+      if(e.target.id==='colModalMask') document.getElementById('colModalMask').classList.remove('show');
+    });
+    document.getElementById('colModalOk').addEventListener('click', ()=>{
+      const name = document.getElementById('newColName').value.trim();
+      if(!name){ alert('請輸入欄位名稱'); return; }
+      const type = document.querySelector('input[name=colType]:checked').value;
+      const id = 'col_'+uid();
+      state.overview.columns.push({id, label:name, type, summable: type==='number', width: type==='number'?92:120});
+      Object.values(state.overview.monthlyRows).forEach(rows=>{ rows.forEach(r=>{ r.cells[id] = {v:'',color:'',bg:'',align:''}; }); });
+      document.getElementById('colModalMask').classList.remove('show');
+      renderOverview();
+      saveOverview();
+    });
+  }
+
+  /* ================= CUSTOMERS ================= */
+  let custFormOpen = false;
+  function allCustomerNames(){
+    const nameColId = colIdByLabel('姓名','name');
+    const names = new Set();
+    allRowsWithMonth().forEach(({row})=>{
+      if(!isRealServiceRow(row)) return;
+      names.add((row.cells[nameColId].v||'').trim());
+    });
+    state.customers.forEach(c=> names.add(c.name));
+    return Array.from(names).filter(Boolean);
+  }
+
+  function renderCustomers(){
+    const list = document.getElementById('custList');
+    const stats = computeCustomerStats();
+    const firstVisitMap = computeFirstVisitMap();
+    const names = allCustomerNames();
+    if(names.length===0){
+      list.innerHTML = '<div class="empty-hint">尚未有任何客戶資料。在「報表」輸入姓名，或點右上角「＋ 新增客戶」手動建檔都可以。</div>';
+      return;
+    }
+    // manually-added customers first (so their extra info like phone/birthday is easy to find), then auto-detected-only names
+    const manualNames = state.customers.map(c=>c.name);
+    const sorted = names.slice().sort((a,b)=>{
+      const am = manualNames.includes(a), bm = manualNames.includes(b);
+      if(am!==bm) return am? -1 : 1;
+      return (stats[b]?.count||0) - (stats[a]?.count||0);
+    });
+    list.innerHTML = sorted.map(name=>{
+      const c = state.customers.find(x=>x.name===name);
+      const s = stats[name] || {count:0,total:0};
+      const isReturning = s.count>1;
+      const badgeHtml = `<span class="cust-badge ${isReturning?'returning':'new'}">${isReturning?'🔁 舊客':'🆕 新客'}</span>`;
+      return `<div class="cust-card">
+          <div class="cust-top">
+            <div>
+              <div class="cust-name">${escapeHtml(name)} ${badgeHtml}</div>
+              ${c ? `<div class="cust-meta">
+                ${c.phone?`<span>📞 ${escapeHtml(c.phone)}</span>`:''}
+                ${c.birthday?`<span>🎂 ${escapeHtml(c.birthday)}</span>`:''}
+              </div>` : `<div class="cust-meta"><span style="color:var(--ink-soft);">（自動從報表偵測，尚未手動建檔）</span></div>`}
+            </div>
+            ${c ? `<button type="button" class="btn btn-ghost btn-sm" data-del="${c.id}">刪除</button>` : ''}
+          </div>
+          ${c && c.note?`<div style="font-size:12.5px;color:var(--ink-soft);">${escapeHtml(c.note)}</div>`:''}
+          <div class="cust-stats">
+            <div class="stat-chip">消費次數：${s.count}</div>
+            <div class="stat-chip">累計實收：$${fmtNum(s.total)}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function computeCustomerStats(){
+    const stats = {};
+    const nameColId = colIdByLabel('姓名','name');
+    const receivedColId = colIdByLabel('實收','received');
+    allRowsFlat().forEach(row=>{
+      if(!isRealServiceRow(row)) return;
+      const name = (row.cells[nameColId].v||'').trim();
+      const v = parseNum(row.cells[receivedColId] ? row.cells[receivedColId].v : '');
+      if(!stats[name]) stats[name] = {count:0,total:0};
+      stats[name].count += 1;
+      stats[name].total += isNaN(v)?0:v;
+    });
+    return stats;
+  }
+
+  function bindCustomerEvents(){
+    document.getElementById('addCustBtn').addEventListener('click', ()=>{
+      custFormOpen = !custFormOpen;
+      renderCustFormWrap();
+    });
+    document.getElementById('custList').addEventListener('click', (e)=>{
+      const delBtn = e.target.closest('[data-del]');
+      if(delBtn){
+        if(confirm('確定要刪除這位客戶的建檔資料嗎？（不會刪除總覽中的消費紀錄）')){
+          state.customers = state.customers.filter(c=>c.id!==delBtn.dataset.del);
+          renderCustomers();
+          saveCustomers();
+        }
+      }
+    });
+  }
+
+  function renderCustFormWrap(){
+    const wrap = document.getElementById('custFormWrap');
+    if(!custFormOpen){ wrap.innerHTML=''; return; }
+    wrap.innerHTML = `
+      <div class="cust-form">
+        <input type="text" id="cf_name" placeholder="姓名 *">
+        <input type="text" id="cf_phone" placeholder="電話">
+        <input type="text" id="cf_birthday" placeholder="生日 (例如 5/12)">
+        <textarea id="cf_note" placeholder="備註" class="full" rows="2"></textarea>
+        <div class="full" style="display:flex;gap:8px;">
+          <button type="button" class="btn btn-primary btn-sm" id="cf_save">儲存客戶</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="cf_cancel">取消</button>
+        </div>
+      </div>`;
+    document.getElementById('cf_cancel').addEventListener('click', ()=>{ custFormOpen=false; renderCustFormWrap(); });
+    document.getElementById('cf_save').addEventListener('click', ()=>{
+      const name = document.getElementById('cf_name').value.trim();
+      if(!name){ alert('請輸入姓名'); return; }
+      state.customers.push({
+        id: uid(), name,
+        phone: document.getElementById('cf_phone').value.trim(),
+        birthday: document.getElementById('cf_birthday').value.trim(),
+        note: document.getElementById('cf_note').value.trim(),
+      });
+      custFormOpen = false;
+      renderCustFormWrap();
+      renderCustomers();
+      saveCustomers();
+    });
+  }
+
+  /* ================= CALENDAR ================= */
+  function bindCalendarEvents(){
+    document.getElementById('calPrev').addEventListener('click', ()=>{
+      state.calDate.setMonth(state.calDate.getMonth()-1);
+      renderCalendar();
+    });
+    document.getElementById('calNext').addEventListener('click', ()=>{
+      state.calDate.setMonth(state.calDate.getMonth()+1);
+      renderCalendar();
+    });
+  }
+
+  function getEntriesForDay(month, day){
+    const ov = state.overview;
+    const dateColId = (ov.columns.find(c=>c.label==='日期')||{}).id || 'date';
+    const nameColId = (ov.columns.find(c=>c.label==='姓名')||{}).id || 'name';
+    const itemColId = (ov.columns.find(c=>c.label==='項目')||{}).id || 'item';
+    const receivedColId = (ov.columns.find(c=>c.label==='實收')||{}).id || 'received';
+    const results = [];
+    // Look only at the specific year-month bucket the calendar is showing,
+    // rather than scanning every month, so day/month matches are accurate.
+    const key = monthKey(state.calDate);
+    getMonthRows(key).forEach(row=>{
+      const raw = row.cells[dateColId] ? row.cells[dateColId].v : '';
+      const m = /^(\d{1,2})\s*\/\s*(\d{1,2})/.exec((raw||'').trim());
+      if(!m) return;
+      const mm = parseInt(m[1],10), dd = parseInt(m[2],10);
+      if(mm===month && dd===day){
+        results.push({
+          name: row.cells[nameColId]?row.cells[nameColId].v:'',
+          item: row.cells[itemColId]?row.cells[itemColId].v:'',
+          received: row.cells[receivedColId]?row.cells[receivedColId].v:'',
+        });
+      }
+    });
+    return results;
+  }
+
+  function dateKeyFor(year, month, day){
+    return `${year}-${pad2(month)}-${pad2(day)}`;
+  }
+  function getAppointments(dateKey){
+    return (state.appointments && state.appointments[dateKey]) || [];
+  }
+  // combines 報表 visit history *and* appointment history to decide if a given
+  // appointment is this person's very first-ever contact with the salon
+  function computeFirstSeenMap(){
+    const map = {};
+    const nameColId = colIdByLabel('姓名','name');
+    allRowsWithMonth().forEach(({row, monthKey:mk})=>{
+      if(!isRealServiceRow(row)) return;
+      const name = (row.cells[nameColId].v||'').trim();
+      const d = rowDate(row, mk);
+      if(!d) return;
+      const sk = sortKey(d);
+      if(map[name]===undefined || sk<map[name]) map[name]=sk;
+    });
+    Object.keys(state.appointments||{}).forEach(dk=>{
+      const [y,mo,da] = dk.split('-').map(Number);
+      const sk = y*10000+mo*100+da;
+      getAppointments(dk).forEach(ap=>{
+        const name=(ap.name||'').trim();
+        if(!name) return;
+        if(map[name]===undefined || sk<map[name]) map[name]=sk;
+      });
+    });
+    return map;
+  }
+
+  function renderCalendar(){
+    const d = state.calDate;
+    const year = d.getFullYear(), month = d.getMonth()+1;
+    document.getElementById('calTitle').textContent = `${year} 年 ${month} 月`;
+
+    const firstDay = new Date(year, month-1, 1);
+    const startWeekday = firstDay.getDay();
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    const today = new Date();
+    const isCurMonth = today.getFullYear()===year && (today.getMonth()+1)===month;
+
+    let html = ['日','一','二','三','四','五','六'].map(w=>`<div class="cal-dow">${w}</div>`).join('');
+    for(let i=0;i<startWeekday;i++) html += '<div class="cal-day empty"></div>';
+    for(let day=1; day<=daysInMonth; day++){
+      const entries = getEntriesForDay(month, day);
+      const appts = getAppointments(dateKeyFor(year, month, day));
+      const isToday = isCurMonth && today.getDate()===day;
+      const hasAny = entries.length || appts.length;
+      html += `<div class="cal-day ${hasAny?'has-entry':''} ${isToday?'today':''}" data-day="${day}">
+        <div class="d-num">${day}</div>
+        ${appts.length?`<div class="d-badge appt">📅${appts.length}</div>`:''}
+        ${entries.length?`<div class="d-badge">💰${entries.length}</div>`:''}
+      </div>`;
+    }
+    document.getElementById('calGrid').innerHTML = html;
+
+    document.getElementById('calGrid').querySelectorAll('.cal-day[data-day]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const day = parseInt(el.dataset.day,10);
+        renderCalDetail(year, month, day);
+      });
+    });
+  }
+
+  function renderCalDetail(year, month, day){
+    const detail = document.getElementById('calDetail');
+    const dateKey = dateKeyFor(year, month, day);
+    const entries = getEntriesForDay(month, day);
+    const appts = getAppointments(dateKey).slice().sort((a,b)=> (a.time||'').localeCompare(b.time||''));
+    const firstSeenMap = computeFirstSeenMap();
+    const todaySortKey = year*10000+month*100+day;
+
+    let html = `<h3>${month}/${day}</h3>`;
+
+    html += `<div class="cal-appt-list">`;
+    if(appts.length===0){
+      html += `<div class="empty-hint" style="border:none;padding:8px 0;">當天尚無預約</div>`;
+    } else {
+      appts.forEach(ap=>{
+        const name = (ap.name||'').trim();
+        const isNew = name && firstSeenMap[name]===todaySortKey;
+        html += `<div class="cal-appt-row ${isNew?'new':'returning'}" data-appt-id="${ap.id}">
+          <div class="cal-appt-time">${escapeHtml(ap.time||'--:--')}</div>
+          <div class="cal-appt-info">
+            <span class="cal-appt-name">${escapeHtml(name||'（未填姓名）')}</span>
+            <span class="cust-badge ${isNew?'new':'returning'}">${isNew?'🆕 新客':'🔁 舊客'}</span>
+            ${ap.note?`<div class="cal-appt-note">${escapeHtml(ap.note)}</div>`:''}
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm cal-appt-del" data-appt-id="${ap.id}" data-date-key="${dateKey}">刪除</button>
+        </div>`;
+      });
+    }
+    html += `</div>`;
+    html += `<button type="button" class="btn btn-outline btn-sm" id="calAddApptBtn" data-date-key="${dateKey}" style="margin-top:8px;">＋ 新增預約</button>`;
+    html += `<div id="calApptFormWrap"></div>`;
+
+    if(entries.length){
+      html += `<h3 style="margin-top:16px;">當天營收紀錄　共 ${entries.length} 筆</h3>`;
+      html += entries.map(en=>{
+        const rv = parseNum(en.received);
+        return `<div class="cal-detail-row"><span>${escapeHtml(en.name)}｜${escapeHtml(en.item)}</span><span>$${isNaN(rv)?escapeHtml(en.received):fmtNum(rv)}</span></div>`;
+      }).join('');
+    }
+
+    detail.style.display='block';
+    detail.innerHTML = html;
+
+    document.getElementById('calAddApptBtn').addEventListener('click', ()=>{
+      renderApptForm(dateKey, year, month, day);
+    });
+    detail.querySelectorAll('.cal-appt-del').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        if(!confirm('確定要刪除這筆預約嗎？')) return;
+        const dk = btn.dataset.dateKey, id = btn.dataset.apptId;
+        state.appointments[dk] = getAppointments(dk).filter(a=>a.id!==id);
+        saveAppointments();
+        renderCalendar();
+        renderCalDetail(year, month, day);
+      });
+    });
+  }
+
+  function renderApptForm(dateKey, year, month, day){
+    const wrap = document.getElementById('calApptFormWrap');
+    if(!wrap) return;
+    wrap.innerHTML = `
+      <div class="cust-form" style="margin-top:8px;">
+        <input type="text" id="apptTime" placeholder="時間 (例如 17:00)">
+        <input type="text" id="apptName" placeholder="客戶姓名 *">
+        <textarea id="apptNote" placeholder="備註" class="full" rows="2"></textarea>
+        <div class="full" style="display:flex;gap:8px;">
+          <button type="button" class="btn btn-primary btn-sm" id="apptSaveBtn">儲存預約</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="apptCancelBtn">取消</button>
+        </div>
+      </div>`;
+    document.getElementById('apptCancelBtn').addEventListener('click', ()=>{ wrap.innerHTML=''; });
+    document.getElementById('apptSaveBtn').addEventListener('click', ()=>{
+      const name = document.getElementById('apptName').value.trim();
+      if(!name){ alert('請輸入客戶姓名'); return; }
+      const time = document.getElementById('apptTime').value.trim();
+      const note = document.getElementById('apptNote').value.trim();
+      if(!state.appointments[dateKey]) state.appointments[dateKey] = [];
+      state.appointments[dateKey].push({ id: uid(), time, name, note });
+      saveAppointments();
+      wrap.innerHTML = '';
+      renderCalendar();
+      renderCalDetail(year, month, day);
+    });
+  }
+
+  /* ================= BRAND ================= */
+  function applyBrand(persist){
+    const b = state.brand;
+    document.documentElement.style.setProperty('--primary', b.color);
+    document.documentElement.style.setProperty('--primary-light', shadeColor(b.color, 15));
+    document.documentElement.style.setProperty('--primary-tint', shadeColor(b.color, 82));
+    document.getElementById('brandName').textContent = b.name;
+    document.getElementById('brandEmoji').textContent = b.emoji;
+    if(persist) saveBrand();
+  }
+
+  function shadeColor(hex, percent){
+    hex = (hex||'#7A2E43').replace('#','');
+    if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+    const num = parseInt(hex,16);
+    let r = (num>>16), g=(num>>8 & 0x00FF), b=(num & 0x0000FF);
+    r = Math.round(r + (255-r)*percent/100);
+    g = Math.round(g + (255-g)*percent/100);
+    b = Math.round(b + (255-b)*percent/100);
+    return '#'+(0x1000000 + r*0x10000 + g*0x100 + b).toString(16).slice(1);
+  }
+
+  function renderBrandForm(){
+    document.getElementById('brandNameInput').value = state.brand.name;
+    document.getElementById('previewName').textContent = state.brand.name;
+    document.getElementById('previewLogo').textContent = state.brand.emoji;
+
+    const emojiWrap = document.getElementById('emojiPicks');
+    emojiWrap.innerHTML = EMOJI_OPTIONS.map(em=>
+      `<div class="emoji-pick ${em===state.brand.emoji?'active':''}" data-emoji="${em}">${em}</div>`
+    ).join('');
+
+    const colorWrap = document.getElementById('colorPicks');
+    colorWrap.innerHTML = COLOR_OPTIONS.map(c=>
+      `<div class="swatch ${c===state.brand.color?'active':''}" data-color="${c}" style="background:${c};"></div>`
+    ).join('') + `<input type="color" id="customColor" value="${state.brand.color}" style="width:30px;height:30px;border:none;border-radius:50%;padding:0;cursor:pointer;">`;
+  }
+
+  function bindBrandEvents(){
+    document.getElementById('emojiPicks').addEventListener('click', (e)=>{
+      const el = e.target.closest('.emoji-pick');
+      if(!el) return;
+      state.brand.emoji = el.dataset.emoji;
+      renderBrandForm();
+      previewOnly();
+    });
+    document.getElementById('colorPicks').addEventListener('click', (e)=>{
+      const el = e.target.closest('.swatch');
+      if(!el) return;
+      state.brand.color = el.dataset.color;
+      renderBrandForm();
+      previewOnly();
+    });
+    document.getElementById('colorPicks').addEventListener('input', (e)=>{
+      if(e.target.id==='customColor'){
+        state.brand.color = e.target.value;
+        previewOnly();
+      }
+    });
+    document.getElementById('brandNameInput').addEventListener('input', (e)=>{
+      state.brand.name = e.target.value || '美業後台營運報表';
+      document.getElementById('previewName').textContent = state.brand.name;
+    });
+    document.getElementById('saveBrandBtn').addEventListener('click', ()=>{
+      applyBrand(true);
+      renderOverview();
+    });
+  }
+
+  function previewOnly(){
+    document.getElementById('previewLogo').textContent = state.brand.emoji;
+    document.getElementById('previewLogo').style.background = state.brand.color;
+    document.getElementById('previewName').style.color = state.brand.color;
+  }
+
+  /* ================= INIT ================= */
+  // 1) Bind ALL interactive elements immediately with default/in-memory state,
+  //    so the whole UI is clickable right away even if storage is unavailable
+  //    (e.g. when the file is opened locally instead of inside Claude).
+  // 2) Then try to hydrate from persistent storage in the background.
+  function bindEverything(){
+    bindTabs();
+    bindOverviewEvents();
+    bindCustomerEvents();
+    bindCalendarEvents();
+    bindBrandEvents();
+    bindColumnModal();
+    bindCloudModal();
+    document.getElementById('exportBtn').addEventListener('click', exportBackup);
+    document.getElementById('importBtn').addEventListener('click', ()=>{
+      document.getElementById('importFileInput').click();
+    });
+    document.getElementById('importFileInput').addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(file) importBackupFile(file);
+      e.target.value = '';
+    });
+  }
+
+  function renderEverything(){
+    applyBrand(false);
+    renderOverview();
+    renderDashboard(state.dashPeriod);
+    renderCustomers();
+    renderCalendar();
+    renderBrandForm();
+  }
+
+  async function hydrateFromStorage(){
+    await detectStorageBackend();
+    updateStorageBadge();
+    if(storageBackend!=='none'){
+      const [ov, custs, brand, appts] = await Promise.all([
+        loadKey('overview:data', null),
+        loadKey('customers:list', null),
+        loadKey('brand:settings', null),
+        loadKey('appointments:data', null),
+      ]);
+      if(ov) state.overview = migrateOverviewIfNeeded(ov);
+      if(custs) state.customers = custs;
+      if(brand) state.brand = brand;
+      if(appts) state.appointments = appts;
+      renderEverything();
+    }
+    // if the person previously set up cloud sync on this browser, reconnect automatically
+    // (this will override the above with the latest cloud copy once it arrives)
+    tryAutoConnectCloud().catch(err=>console.error('雲端自動連線失敗', err));
+  }
+
+  function init(){
+    try{
+      renderEverything();
+      bindEverything();
+    }catch(err){
+      console.error('初始化發生錯誤', err);
+    }
+    // hard safety net: no matter what hangs inside, make sure the badge
+    // reflects *something* within a few seconds instead of staying stuck
+    // on "偵測中…" forever.
+    const badgeTimeout = setTimeout(()=>{ updateStorageBadge(); }, 4000);
+    hydrateFromStorage()
+      .catch(err=>{ console.error('讀取儲存資料失敗', err); })
+      .finally(()=>{ clearTimeout(badgeTimeout); updateStorageBadge(); });
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+<div class="modal-mask" id="cloudModalMask">
+  <div class="modal wide">
+    <h3>☁️ 雲端即時同步</h3>
+    <div id="cloudModalBody"><!-- filled by JS --></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="cloudModalClose">關閉</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // This module ONLY defines a loader function — it does not import or
+  // fetch anything by itself, so it has zero effect on normal page load.
+  // The classic <script> above calls window.__loadFirebaseModules() itself,
+  // but only when the person clicks "連線" in the cloud sync modal.
+  window.__loadFirebaseModules = async function(){
+    const [{ initializeApp, getApps }, { getFirestore, doc, setDoc, onSnapshot }] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js'),
+    ]);
+    let db = null, unsub = null;
+    return {
+      async connect(config, syncCode, onData, onError){
+        try{
+          const app = getApps().length ? getApps()[0] : initializeApp(config);
+          db = getFirestore(app);
+          if(unsub){ unsub(); unsub = null; }
+          const ref = doc(db, 'beautyErpSalons', syncCode);
+          unsub = onSnapshot(ref, (snap)=>{
+            if(snap.metadata.hasPendingWrites) return; // ignore echo of our own write
+            if(snap.exists()) onData(snap.data());
+          }, (err)=>{ if(onError) onError(err); });
+          return true;
+        }catch(e){
+          if(onError) onError(e);
+          return false;
+        }
+      },
+      async write(syncCode, data){
+        if(!db) return false;
+        try{ await setDoc(doc(db, 'beautyErpSalons', syncCode), data, {merge:false}); return true; }
+        catch(e){ console.error('雲端寫入失敗', e); return false; }
+      },
+      disconnect(){ if(unsub){ unsub(); unsub=null; } db=null; },
+    };
+  };
+</script>
+
+</body>
+</html>
